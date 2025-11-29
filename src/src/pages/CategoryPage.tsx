@@ -6,6 +6,7 @@ import { SortFilter } from '../components/product/SortFilter';
 import { CategoryFilter } from '../components/product/CategoryFilter';
 import { SortOption } from '../types';
 // import { categories } from '../api/mockData';
+import categoryApi from '../api/categoryApi';
 export function CategoryPage() {
   const {
     categoryId

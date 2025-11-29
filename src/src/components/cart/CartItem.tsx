@@ -27,16 +27,16 @@ export function CartItem({
           {formatCurrency(product.price)}
         </p>
         <div className="flex items-center gap-2">
-          <button onClick={() => updateQuantity(product.id, quantity - 1)} className="w-7 h-7 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-100 transition-colors" aria-label="Decrease quantity">
+          <button onClick={() => updateQuantity(item.id, quantity - 1)} className="w-7 h-7 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-100 transition-colors" aria-label="Decrease quantity">
             <Minus className="w-3 h-3" />
           </button>
           <span className="w-8 text-center font-medium">{quantity}</span>
-          <button onClick={() => updateQuantity(product.id, quantity + 1)} disabled={quantity >= product.stock} className="w-7 h-7 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" aria-label="Increase quantity">
+          <button onClick={() => updateQuantity(item.id, quantity + 1)} className="w-7 h-7 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" aria-label="Increase quantity">
             <Plus className="w-3 h-3" />
           </button>
         </div>
       </div>
-      <button onClick={() => removeFromCart(product.id)} className="text-gray-400 hover:text-red-500 transition-colors" aria-label="Remove item">
+      <button onClick={() => removeFromCart(item.id)} className="text-gray-400 hover:text-red-500 transition-colors" aria-label="Remove item">
         <Trash2 className="w-5 h-5" />
       </button>
     </div>;

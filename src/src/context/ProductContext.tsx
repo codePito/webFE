@@ -19,17 +19,58 @@ export function ProductProvider({
 }) {
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilterdProducts] = useState<Product[]>([]);
-  useEffect(() => {
-  const fectchProducts = async () => {
+  // File: src/src/context/ProductContext.tsx
+
+useEffect(() => {
+  const fetchProducts = async () => {
     try {
       const response = await productApi.getAll();
-      setProducts(response.data);
-      setFilterdProducts(response.data);
-    } catch(error) {
+      const apiData = response.data;
+
+      // 1. Lấy mảng sản phẩm từ thuộc tính "result"
+      // Nếu apiData.result undefined thì fallback về mảng rỗng
+      const productList = apiData.result || [];
+
+      // 2. Map dữ liệu từ cấu trúc API sang cấu trúc Frontend
+      const mappedData = productList.map((p: any) => ({
+        // Chuyển id từ số sang chuỗi để khớp với type Product của frontend
+        id: p.id ? p.id.toString() : Math.random().toString(),
+        
+        name: p.name || 'No Name',
+        description: p.description || '',
+        price: p.price || 0,
+        
+        // Tạo dữ liệu giả cho các trường API chưa có để giao diện đẹp hơn
+        originalPrice: p.price ? p.price * 1.2 : 0, 
+        discount: 0,
+        
+        // Xử lý mảng ảnh: Lấy filePath từ đối tượng ảnh
+        images: (p.images && p.images.length > 0)
+          ? p.images.map((img: any) => img.filePath || 'https://via.placeholder.com/300')
+          : ['https://via.placeholder.com/300'], // Ảnh mặc định nếu không có
+          
+        category: p.categoryId ? p.categoryId.toString() : 'General',
+        
+        // Các trường này API chưa có, set mặc định để không lỗi UI
+        rating: 5,
+        reviewCount: 0,
+        soldCount: 0,
+        stock: 100,
+        specifications: {}
+      }));
+
+      // 3. Cập nhật state
+      setProducts(mappedData);
+      setFilterdProducts(mappedData);
+
+    } catch (error) {
       console.error("Failed to fetch products", error);
+      setProducts([]);
+      setFilterdProducts([]);
     }
   };
-  fectchProducts();
+
+  fetchProducts();
 }, []);
 
   const applyFilters = (filters: FilterOptions) => {

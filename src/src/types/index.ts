@@ -14,14 +14,29 @@ export interface Product {
   specifications?: Record<string, string>;
 }
 export interface CartItem {
+  id: string,
   product: Product;
   quantity: number;
 }
 export interface Category {
   id: string;
   name: string;
-  icon: string;
+  // icon: string;
 }
+
+export interface CartItemBackend {
+  id: number,
+  productId: number,
+  productName: string,
+  quantity: number,
+  price: number
+}
+
+export interface CartBackend {
+  id: number,
+  items: CartItemBackend[];
+}
+
 export interface User {
   id: string;
   email: string;
@@ -42,7 +57,7 @@ export interface RegisterData {
 export interface CheckoutFormData {
   fullName: string;
   email: string;
-  phone: string;
+  // phone: string;
   address: string;
   city: string;
   postalCode: string;
