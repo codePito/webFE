@@ -2,7 +2,6 @@ import React, { useState, createContext, useContext, useEffect } from 'react';
 import { Product, FilterOptions } from '../types';
 import productApi from '../api/productApi';
 
-
 interface ProductContextType {
   products: Product[];
   filteredProducts: Product[];
@@ -10,73 +9,79 @@ interface ProductContextType {
   searchProducts: (query: string) => Product[];
   getProductById: (id: string) => Product | undefined;
   getProductsByCategory: (category: string) => Product[];
+  refreshProducts: () => Promise<void>;
 }
-const ProductContext = createContext<ProductContextType | undefined>(undefined);
-export function ProductProvider({
-  children
-}: {
-  children: React.ReactNode;
-}) {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [filteredProducts, setFilterdProducts] = useState<Product[]>([]);
-  // File: src/src/context/ProductContext.tsx
 
-useEffect(() => {
+const ProductContext = createContext<ProductContextType | undefined>(undefined);
+
+export function ProductProvider({ children }: { children: React.ReactNode }) {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+
   const fetchProducts = async () => {
     try {
       const response = await productApi.getAll();
       const apiData = response.data;
 
-      const rawList = apiData.result || apiData
-
-      // 1. Lấy mảng sản phẩm từ thuộc tính "result"
-      // Nếu apiData.result undefined thì fallback về mảng rỗng
+      // Lấy danh sách sản phẩm từ API
+      const rawList = apiData.result || apiData;
       const productList = Array.isArray(rawList) ? rawList : [];
 
-      // 2. Map dữ liệu từ cấu trúc API sang cấu trúc Frontend
-      const mappedData = productList.map((p: any) => ({
-        // Chuyển id từ số sang chuỗi để khớp với type Product của frontend
+      // Map dữ liệu với hệ thống Image mới
+      const mappedData: Product[] = productList.map((p: any) => ({
         id: p.id ? p.id.toString() : Math.random().toString(),
-        
         name: p.name || 'No Name',
         description: p.description || '',
         price: p.price || 0,
         
-        // Tạo dữ liệu giả cho các trường API chưa có để giao diện đẹp hơn
-        originalPrice: p.price ? p.price * 1.2 : 0, 
-        discount: 0,
+        // Giá gốc và giảm giá (optional)
+        originalPrice: p.originalPrice || (p.price ? p.price * 1.2 : 0),
+        discount: p.discount || 0,
         
-        // Xử lý mảng ảnh: Lấy filePath từ đối tượng ảnh
-        images: (p.images && p.images.length > 0)
-          ? p.images.map((img: any) => img.filePath || 'https://via.placeholder.com/300')
-          : ['https://via.placeholder.com/300'], // Ảnh mặc định nếu không có
-          
+        // ✅ HỆ THỐNG IMAGE MỚI - Sử dụng primaryImageUrl và imageUrls
+        images: p.imageUrls && p.imageUrls.length > 0 
+          ? p.imageUrls 
+          : (p.primaryImageUrl ? [p.primaryImageUrl] : ['https://via.placeholder.com/300']),
+        
         category: p.categoryId ? p.categoryId.toString() : 'General',
+        categoryName: p.categoryName || 'Unknown',
         
-        // Các trường này API chưa có, set mặc định để không lỗi UI
-        rating: 5,
-        reviewCount: 0,
-        soldCount: 0,
-        stock: 100,
-        specifications: {}
+        // ✅ STOCK MANAGEMENT MỚI
+        stock: p.stockQuantity ?? 100,
+        isAvailable: p.isAvailable ?? true,
+        isLowStock: p.isLowStock ?? false,
+        isOutOfStock: p.isOutOfStock ?? false,
+        lowStockThreshold: p.lowStockThreshold || 5,
+        
+        // Các trường rating (giữ nguyên logic cũ)
+        rating: p.rating || 5,
+        reviewCount: p.reviewCount || 0,
+        soldCount: p.soldCount || 0,
+        
+        specifications: p.specifications || {}
       }));
 
-      // 3. Cập nhật state
       setProducts(mappedData);
-      setFilterdProducts(mappedData);
+      setFilteredProducts(mappedData);
 
     } catch (error) {
       console.error("Failed to fetch products", error);
       setProducts([]);
-      setFilterdProducts([]);
+      setFilteredProducts([]);
     }
   };
 
-  fetchProducts();
-}, []);
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const refreshProducts = async () => {
+    await fetchProducts();
+  };
 
   const applyFilters = (filters: FilterOptions) => {
     let filtered = [...products];
+    
     if (filters.category) {
       filtered = filtered.filter(p => p.category === filters.category);
     }
@@ -105,29 +110,41 @@ useEffect(() => {
           break;
       }
     }
-    setFilterdProducts(filtered);
+    setFilteredProducts(filtered);
   };
+
   const searchProducts = (query: string): Product[] => {
     const lowercaseQuery = query.toLowerCase();
-    return products.filter(p => p.name.toLowerCase().includes(lowercaseQuery) || p.description.toLowerCase().includes(lowercaseQuery) || p.category.toLowerCase().includes(lowercaseQuery));
+    return products.filter(p => 
+      p.name.toLowerCase().includes(lowercaseQuery) || 
+      p.description.toLowerCase().includes(lowercaseQuery) ||
+      (p.category && p.category.toLowerCase().includes(lowercaseQuery))
+    );
   };
+
   const getProductById = (id: string) => {
     return products.find(p => p.id === id);
   };
+
   const getProductsByCategory = (category: string) => {
     return products.filter(p => p.category === category);
   };
-  return <ProductContext.Provider value={{
-    products,
-    filteredProducts,
-    applyFilters,
-    searchProducts,
-    getProductById,
-    getProductsByCategory
-  }}>
+
+  return (
+    <ProductContext.Provider value={{
+      products,
+      filteredProducts,
+      applyFilters,
+      searchProducts,
+      getProductById,
+      getProductsByCategory,
+      refreshProducts
+    }}>
       {children}
-    </ProductContext.Provider>;
+    </ProductContext.Provider>
+  );
 }
+
 export function useProducts() {
   const context = useContext(ProductContext);
   if (!context) {

@@ -1,17 +1,3 @@
-// User Types
-export interface User {
-  id: string;
-  email: string;
-  fullName: string;
-  phone?: string;
-  avatar?: string;
-  role: 'admin' | 'user' | 'seller';
-  status: 'active' | 'locked';
-  createdAt: Date;
-  lastLogin?: Date;
-}
-
-// Product Types
 export interface Product {
   id: string;
   name: string;
@@ -22,17 +8,71 @@ export interface Product {
   images: string[];
   category: string;
   categoryName?: string;
-  rating: number;
   reviewCount: number;
   soldCount: number;
-  stock: number;
-  sku: string;
-  status: 'active' | 'inactive' | 'out_of_stock';
   createdAt: Date;
-  updatedAt: Date;
+  
+  // ✅ STOCK MANAGEMENT - Các field mới
+  stock: number;
+  isAvailable: boolean;
+  isLowStock?: boolean;
+  isOutOfStock?: boolean;
+  lowStockThreshold?: number;
+  
+  specifications?: Record<string, string>;
 }
 
-// Order Types
+export interface CartItem {
+  id: string;
+  product: Product;
+  quantity: number;
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  icon?: string;
+  imageUrl?: string;
+}
+
+export interface User {
+  id: string;
+  email: string;
+  fullName: string;
+  createdAt: Date;
+}
+
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+export interface RegisterData {
+  email: string;
+  password: string;
+  userName: string;
+  address: string;
+}
+
+export interface CheckoutFormData {
+  fullName: string;
+  email: string;
+  address: string;
+  city: string;
+  postalCode: string;
+  paymentMethod: 'cod' | 'card' | 'ewallet';
+}
+
+export interface Order {
+  id: number;
+  userId: number;
+  createdAt: string;
+  totalAmount: number;
+  currency: string;
+  status: 'Pending' | 'PaymentPending' | 'Paid' | 'Cancelled' | 'Failed';
+  items: OrderItem[];
+}
+
 export interface OrderItem {
   id: number;
   productId: number;
@@ -41,108 +81,53 @@ export interface OrderItem {
   quantity: number;
   total: number;
 }
-export interface Order {
-  id: string;
-  orderNumber: string;
-  userId: string;
-  userName: string;
-  userEmail: string;
-  items: OrderItem[];
-  subtotal: number;
-  shippingFee: number;
-  total: number;
-  status: 'pending' | 'processing' | 'shipping' | 'delivered' | 'cancelled';
-  paymentMethod: 'cod' | 'card' | 'ewallet';
-  paymentStatus: 'pending' | 'paid' | 'refunded';
-  shippingAddress: {
-    fullName: string;
-    phone: string;
-    address: string;
-    city: string;
-    postalCode: string;
-  };
-  createdAt: Date;
-  updatedAt: Date;
+
+export interface OrderItemRequest {
+  productId: number;
+  quantity: number;
 }
 
-// Category Types
-export interface Category {
-  id: string;
+export interface OrderRequest {
+  userId: number;
+  items: OrderItemRequest[];
+  currency: string;
+}
+
+export interface MomoPaymentRequest {
+  orderId: number;
+  returnUrl: string;
+  notifyUrl: string;
+}
+
+export interface MomoPaymentResponse {
+  orderId: number;
+  payUrl: string;
+  requestId: string;
+  message: string;
+}
+
+export type SortOption = 'popular' | 'price-asc' | 'price-desc' | 'rating';
+
+export interface FilterOptions {
+  category?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  minRating?: number;
+  sortBy?: SortOption;
+}
+
+// ✅ IMAGE REQUEST - Dùng cho Admin khi tạo product
+export interface ImageRequest {
+  filePath: string;
+  isPrimary: boolean;
+}
+
+export interface ProductRequest {
   name: string;
-  slug: string;
-  icon: string;
-  description?: string;
-  productCount: number;
-  status: 'active' | 'inactive';
-  createdAt: Date;
-}
-
-// Seller Types
-export interface Seller {
-  id: string;
-  businessName: string;
-  ownerName: string;
-  email: string;
-  phone: string;
-  address: string;
-  status: 'pending' | 'approved' | 'rejected' | 'suspended';
-  totalProducts: number;
-  totalRevenue: number;
-  rating: number;
-  createdAt: Date;
-}
-
-// Coupon Types
-export interface Coupon {
-  id: string;
-  code: string;
   description: string;
-  discountType: 'percentage' | 'fixed';
-  discountValue: number;
-  minPurchase?: number;
-  maxDiscount?: number;
-  usageLimit?: number;
-  usedCount: number;
-  startDate: Date;
-  endDate: Date;
-  status: 'active' | 'inactive' | 'expired';
-  createdAt: Date;
-}
-
-// Dashboard Stats
-export interface DashboardStats {
-  totalRevenue: number;
-  revenueGrowth: number;
-  totalOrders: number;
-  ordersGrowth: number;
-  totalUsers: number;
-  usersGrowth: number;
-  totalProducts: number;
-  productsGrowth: number;
-}
-export interface RevenueData {
-  month: string;
-  revenue: number;
-  orders: number;
-}
-export interface OrderStatusData {
-  status: string;
-  count: number;
-  color: string;
-}
-
-// Pagination
-export interface PaginationParams {
-  page: number;
-  limit: number;
-  search?: string;
-  sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
-}
-export interface PaginatedResponse<T> {
-  data: T[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
+  price: number;
+  categoryId: string;
+  stockQuantity: number;
+  lowStockThreshold?: number;
+  images?: ImageRequest[];
 }

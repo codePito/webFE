@@ -30,44 +30,47 @@ export function CheckoutPage() {
 
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
-    e.preventDefault();
-    let currentUserId = user?.id; // Lấy từ Context (có thể null)
+    let currentUserId = null;
 
-    // Logic cứu vãn ID từ JWT nếu Context chưa kịp tải
-    if (!currentUserId) {
-    const token = localStorage.getItem("token");
+    let token = localStorage.getItem("token");
     if (token) {
+      // Xóa prefix "Bearer " nếu có
+      token = token.replace('Bearer ', '');
+      
+      try {
         const decoded: any = jwtDecode(token);
-
-        // Lấy userId từ tất cả các claim có thể có trong JWT
-        currentUserId =
-            decoded.id ||
-            decoded.userId ||
-            decoded.nameid ||
-            decoded.nameId ||
-            decoded.nameidentifier ||
-            decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] ||
-            decoded.sub; // fallback cuối
+        // console.log("Full decoded token:", decoded);
+        currentUserId = decoded.id; // Thử lấy id trực tiếp
+        // console.log("UserId from JWT:", currentUserId);
+      } catch (error) {
+        console.error("JWT decode error:", error);
+      }
     }
-}
 
-    // Nếu vẫn không có ID, thoát khỏi hàm
-    if (!currentUserId) {
-        alert("Lỗi phiên đăng nhập. Vui lòng login lại.");
-        return;
-    }
+    // Fallback sang Context nếu không có token
+    if (!currentUserId) {
+      currentUserId = user?.id;
+    }
+
+    // Nếu vẫn không có ID, thoát khỏi hàm
+    if (!currentUserId) {
+      alert("Lỗi phiên đăng nhập. Vui lòng login lại.");
+      return;
+    }
 
     setLoading(true);
     try {
-      // 1. Chuẩn bị payload tạo Order
       const orderPayload: OrderRequest = {
-        userId: parseInt(currentUserId), // Parse ID sang int cho Backend
+        userId: parseInt(currentUserId),
         currency: "VND",
         items: items.map(item => ({
-          productId: parseInt(item.product.id), // Parse ProductID
+          productId: parseInt(item.product.id),
           quantity: item.quantity
         }))
       };
+
+      console.log("Order Payload:", orderPayload);
+
 
       // 2. Gọi API tạo đơn
       const orderRes = await orderApi.create(orderPayload);
@@ -79,8 +82,8 @@ export function CheckoutPage() {
         // Gọi API lấy link Momo
         const paymentRes = await paymentApi.createMomoPayment({
           orderId: newOrder.id, // ID đơn hàng vừa tạo
-          returnUrl: window.location.origin + "/payment-result", // User quay về đây
-          notifyUrl: "https://your-ngrok-domain.com/api/payment/momo/notify" // URL backend nhận IPN
+          returnUrl: window.location.origin , // User quay về đây
+          notifyUrl: "https://google.com" // URL backend nhận IPN
         });
 
         // Clear giỏ hàng client

@@ -107,7 +107,7 @@ export function AuthProvider({
         const fullName = decoded[EMAIL_CLAIM_KEY] || decoded.name || email.split('@')[0];
         
         const userInfo: User = {
-            id: decoded[ID_CLAIM_KEY] || decoded.sub || 'unknown-id',
+            id: decoded[ID_CLAIM_KEY] || decoded.id || 'unknown-id',
             email: email,
             fullName: fullName,
             phone: decoded.phone,

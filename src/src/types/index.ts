@@ -1,5 +1,3 @@
-// import { OrderItem } from "../../admin-ui/src/types";
-
 export interface Product {
   id: string;
   name: string;
@@ -9,34 +7,32 @@ export interface Product {
   discount?: number;
   images: string[];
   category: string;
+  categoryName?: string;
   rating: number;
   reviewCount: number;
   soldCount: number;
+  
+  // ✅ STOCK MANAGEMENT - Các field mới
   stock: number;
+  isAvailable: boolean;
+  isLowStock?: boolean;
+  isOutOfStock?: boolean;
+  lowStockThreshold?: number;
+  
   specifications?: Record<string, string>;
 }
+
 export interface CartItem {
-  id: string,
+  id: string;
   product: Product;
   quantity: number;
 }
+
 export interface Category {
   id: string;
   name: string;
-  // icon: string;
-}
-
-export interface CartItemBackend {
-  id: number,
-  productId: number,
-  productName: string,
-  quantity: number,
-  price: number
-}
-
-export interface CartBackend {
-  id: number,
-  items: CartItemBackend[];
+  icon?: string;
+  imageUrl?: string;
 }
 
 export interface User {
@@ -45,34 +41,38 @@ export interface User {
   fullName: string;
   createdAt: Date;
 }
+
 export interface LoginCredentials {
   email: string;
   password: string;
 }
+
 export interface RegisterData {
   email: string;
   password: string;
-  fullName: string;
-  phone?: string;
+  userName: string;
+  address: string;
 }
+
 export interface CheckoutFormData {
   fullName: string;
   email: string;
-  // phone: string;
   address: string;
   city: string;
   postalCode: string;
   paymentMethod: 'cod' | 'card' | 'ewallet';
 }
+
 export interface Order {
   id: number;
   userId: number;
   createdAt: string;
   totalAmount: number;
   currency: string;
-  status: 'Pending' | 'PaymentPeding' | 'Paid' | 'Cancelled' | 'Failed';
+  status: 'Pending' | 'PaymentPending' | 'Paid' | 'Cancelled' | 'Failed';
   items: OrderItem[];
 }
+
 export interface OrderItem {
   id: number;
   productId: number;
@@ -81,13 +81,14 @@ export interface OrderItem {
   quantity: number;
   total: number;
 }
+
 export interface OrderItemRequest {
   productId: number;
   quantity: number;
 }
 
 export interface OrderRequest {
-  // userId: number;
+  userId: number;
   items: OrderItemRequest[];
   currency: string;
 }
@@ -104,7 +105,9 @@ export interface MomoPaymentResponse {
   requestId: string;
   message: string;
 }
+
 export type SortOption = 'popular' | 'price-asc' | 'price-desc' | 'rating';
+
 export interface FilterOptions {
   category?: string;
   minPrice?: number;
@@ -113,3 +116,18 @@ export interface FilterOptions {
   sortBy?: SortOption;
 }
 
+// ✅ IMAGE REQUEST - Dùng cho Admin khi tạo product
+export interface ImageRequest {
+  filePath: string;
+  isPrimary: boolean;
+}
+
+export interface ProductRequest {
+  name: string;
+  description: string;
+  price: number;
+  categoryId: string;
+  stockQuantity: number;
+  lowStockThreshold?: number;
+  images?: ImageRequest[];
+}

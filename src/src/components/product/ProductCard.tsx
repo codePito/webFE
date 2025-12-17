@@ -1,4 +1,4 @@
-import React, { lazy } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { ShoppingCart } from 'lucide-react';
 import { Product } from '../../types';
@@ -8,32 +8,60 @@ import { Badge } from '../common/Badge';
 import { Button } from '../common/Button';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
+
 interface ProductCardProps {
   product: Product;
 }
-export function ProductCard({
-  product
-}: ProductCardProps) {
-  const {
-    addToCart
-  } = useCart();
-  const {
-    openAuthModal
-  } = useAuth();
+
+export function ProductCard({ product }: ProductCardProps) {
+  const { addToCart } = useCart();
+  const { openAuthModal } = useAuth();
+
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
+    
+    // Kiểm tra stock trước khi thêm vào giỏ
+    if (product.isOutOfStock) {
+      alert('This product is currently out of stock');
+      return;
+    }
+    
+    if (!product.isAvailable) {
+      alert('This product is currently unavailable');
+      return;
+    }
+    
     const success = addToCart(product);
-    // If addToCart returns false, user is not authenticated
     if (!success) {
       openAuthModal();
     }
   };
-  return <Link to={`/product/${product.id}`} className="group bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col">
+
+  return (
+    <Link 
+      to={`/product/${product.id}`}
+      className="group bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col"
+    >
       <div className="relative aspect-square overflow-hidden bg-gray-100">
-        <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
-        {product.discount && <Badge variant="danger" className="absolute top-2 left-2">
-            -{product.discount}%
-          </Badge>}
+        <img
+          src={product.images[0]}
+          alt={product.name}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          loading="lazy"
+        />
+        
+        {/* Badges */}
+        <div className="absolute top-2 left-2 flex flex-col gap-1">
+          {product.discount && (
+            <Badge variant="danger">-{product.discount}%</Badge>
+          )}
+          {product.isOutOfStock && (
+            <Badge variant="danger">Out of Stock</Badge>
+          )}
+          {product.isLowStock && !product.isOutOfStock && (
+            <Badge variant="warning">Low Stock</Badge>
+          )}
+        </div>
       </div>
 
       <div className="p-4 flex flex-col flex-1">
@@ -42,26 +70,47 @@ export function ProductCard({
         </h3>
 
         <div className="mb-2">
-          <Rating rating={product.rating} reviewCount={product.reviewCount} size="sm" />
+          <Rating 
+            rating={product.rating}
+            reviewCount={product.reviewCount}
+            size="sm"
+          />
         </div>
 
         <div className="flex items-baseline gap-2 mb-2">
           <span className="text-xl font-bold text-orange-600">
             {formatCurrency(product.price)}
           </span>
-          {product.originalPrice && <span className="text-sm text-gray-400 line-through">
+          {product.originalPrice && (
+            <span className="text-sm text-gray-400 line-through">
               {formatCurrency(product.originalPrice)}
-            </span>}
+            </span>
+          )}
         </div>
 
-        <p className="text-xs text-gray-500 mb-4">
-          {formatNumber(product.soldCount)} sold
-        </p>
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-xs text-gray-500">
+            {formatNumber(product.soldCount)} sold
+          </p>
+          {!product.isOutOfStock && product.stock <= 10 && (
+            <p className="text-xs text-orange-600 font-medium">
+              Only {product.stock} left!
+            </p>
+          )}
+        </div>
 
-        <Button variant="primary" size="sm" fullWidth onClick={handleAddToCart} className="mt-auto">
+        <Button
+          variant={product.isOutOfStock ? "secondary" : "primary"}
+          size="sm"
+          fullWidth
+          onClick={handleAddToCart}
+          disabled={product.isOutOfStock || !product.isAvailable}
+          className="mt-auto"
+        >
           <ShoppingCart className="w-4 h-4 inline mr-2" />
-          Add to Cart
+          {product.isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
         </Button>
       </div>
-    </Link>;
+    </Link>
+  );
 }

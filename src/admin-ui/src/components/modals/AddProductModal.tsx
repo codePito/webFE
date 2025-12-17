@@ -7,20 +7,20 @@ import { ImageUpload } from '../common/ImageUpload';
 import categoryApi from '../../../../src/api/categoryApi'; 
 import { Category } from '../../types';
 import { Loader2 } from 'lucide-react';
+
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
   loading?: boolean;
-  // === KHẮC PHỤC LỖI TS: THÊM fullWidth ===
   fullWidth?: boolean;
   children: React.ReactNode;
 }
+
 export function Button({
   variant = 'primary',
   size = 'md',
   loading = false,
-  // === DESTRUCTURE fullWidth ===
-  fullWidth = false, 
+  fullWidth = false,
   className = '',
   children,
   disabled,
@@ -39,13 +39,18 @@ export function Button({
     lg: 'px-6 py-3 text-lg'
   };
 
-  // === LOGIC THÊM w-full ===
   const widthClass = fullWidth ? 'w-full' : '';
 
-  return <button className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${widthClass} ${className}`} disabled={disabled || loading} {...props}>
+  return (
+    <button 
+      className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${widthClass} ${className}`}
+      disabled={disabled || loading}
+      {...props}
+    >
       {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
       {children}
-    </button>;
+    </button>
+  );
 }
 
 interface AddProductModalProps {
@@ -53,11 +58,14 @@ interface AddProductModalProps {
   onClose: () => void;
   onAdd: (product: any) => Promise<boolean>; 
 }
+
 interface ProductFormData {
   name: string;
   description: string;
   price: string;
   category: string;
+  stockQuantity: string;
+  lowStockThreshold: string;
   images: string[];
 }
 
@@ -66,61 +74,53 @@ interface ProductFormErrors {
   description?: string;
   price?: string;
   category?: string;
-  images?: string; // Sửa thành string (chuỗi) để chứa thông báo lỗi
+  stockQuantity?: string;
+  lowStockThreshold?: string;
+  images?: string;
 }
-// ==========================================================
 
-export function AddProductModal({
-  isOpen,
-  onClose,
-  onAdd
-}: AddProductModalProps) {
+export function AddProductModal({ isOpen, onClose, onAdd }: AddProductModalProps) {
   const [formData, setFormData] = useState<ProductFormData>({
     name: '',
     description: '',
     price: '',
     category: '',
+    stockQuantity: '100',
+    lowStockThreshold: '5',
     images: []
   });
-  // === CẬP NHẬT KIỂU DỮ LIỆU CỦA STATE ERRORS ===
-  const [errors, setErrors] = useState<ProductFormErrors>({});
-  
-  const [loading, setLoading] = useState(false);
-  const [categories, setCategories] = useState<Category[]>([]); // Thêm state cho Categories
 
-  // =======================================================
-  // FETCH CATEGORIES
-  // =======================================================
+  const [errors, setErrors] = useState<ProductFormErrors>({});
+  const [loading, setLoading] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+
   const fetchCategories = useCallback(async () => {
     try {
-        const response = await categoryApi.getAll();
-        const rawList = response.data.result || response.data || [];
-        
-        // Ánh xạ dữ liệu danh mục
-        const mappedCategories: Category[] = rawList.map((c: any) => ({
-            id: c.id?.toString() || c.Id?.toString() || c.name,
-            name: c.name || 'Unnamed Category',
-            slug: c.slug || '',
-            icon: c.icon || '📦',
-            productCount: c.productCount || 0, 
-            status: (c.status || 'active') as any,
-            createdAt: c.createdAt ? new Date(c.createdAt) : new Date(),
-        }));
-        setCategories(mappedCategories);
+      const response = await categoryApi.getAll();
+      const rawList = response.data.result || response.data || [];
+      
+      const mappedCategories: Category[] = rawList.map((c: any) => ({
+        id: c.id?.toString() || c.Id?.toString() || c.name,
+        name: c.name || 'Unnamed Category',
+        slug: c.slug || '',
+        icon: c.icon || '📦',
+        productCount: c.productCount || 0, 
+        status: (c.status || 'active') as any,
+        createdAt: c.createdAt ? new Date(c.createdAt) : new Date(),
+      }));
+      setCategories(mappedCategories);
     } catch (error) {
-        console.error("Failed to fetch categories in modal:", error);
+      console.error("Failed to fetch categories in modal:", error);
     }
   }, []);
 
   useEffect(() => {
     if (isOpen) {
-        fetchCategories(); // Gọi API khi modal mở
+      fetchCategories();
     }
   }, [isOpen, fetchCategories]);
-  // =======================================================
 
   const validateForm = (): boolean => {
-    // === CẬP NHẬT KIỂU DỮ LIỆU CỦA newErrors ===
     const newErrors: ProductFormErrors = {};
     
     if (!formData.name.trim()) {
@@ -135,7 +135,12 @@ export function AddProductModal({
     if (!formData.category) {
       newErrors.category = 'Category is required';
     }
-    // Lỗi đã được khắc phục ở đây
+    if (!formData.stockQuantity || parseInt(formData.stockQuantity) < 0) {
+      newErrors.stockQuantity = 'Valid stock quantity is required';
+    }
+    if (!formData.lowStockThreshold || parseInt(formData.lowStockThreshold) < 0) {
+      newErrors.lowStockThreshold = 'Valid low stock threshold is required';
+    }
     if (formData.images.length === 0) {
       newErrors.images = 'At least one image is required';
     }
@@ -143,81 +148,119 @@ export function AddProductModal({
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
     
     setLoading(true);
     
+    // ✅ MAP IMAGES THEO CẤU TRÚC MỚI - Backend chờ Array<{FilePath, IsPrimary}>
     const mappedImages = formData.images.map((url, index) => ({
       FilePath: url,
-
-      IsPrimary: index == 0,
+      IsPrimary: index === 0, // Ảnh đầu tiên là primary
     }));
 
-    // Chuẩn bị payload cho API Product Create
     const productPayload = {
       name: formData.name,
       description: formData.description,
       price: parseFloat(formData.price),
-      categoryId: formData.category, // Cần gửi categoryId
-      images: mappedImages,
-      stock: 100, // Giá trị mặc định
-      sku: `SKU-${Date.now()}`,
-      status: 'active',
+      categoryId: formData.category,
+      stockQuantity: parseInt(formData.stockQuantity),
+      lowStockThreshold: parseInt(formData.lowStockThreshold),
+      images: mappedImages, // ✅ Gửi đúng cấu trúc Backend chờ
     };
     
-    // Gọi hàm onAdd (hàm productApi.create từ ProductsPage)
     const success = await onAdd(productPayload);
-    
     setLoading(false);
     
     if (success) {
-        handleClose();
-    } 
-    // Nếu thất bại, ProductsPage sẽ hiển thị alert
+      handleClose();
+    }
   };
-  
+
   const handleClose = () => {
     setFormData({
       name: '',
       description: '',
       price: '',
       category: '',
+      stockQuantity: '100',
+      lowStockThreshold: '5',
       images: []
     });
-    setErrors({}); // Khởi tạo lại lỗi bằng đối tượng rỗng
+    setErrors({});
     onClose();
   };
-  
-  // Tạo options từ categories đã fetch
+
   const categoryOptions = categories
     .filter(cat => cat.status === 'active')
     .map(cat => ({
-        value: cat.id,
-        label: `${cat.name} `
+      value: cat.id,
+      label: cat.name
     }));
 
-  return <Modal isOpen={isOpen} onClose={handleClose} title="Add New Product" size="lg">
+  return (
+    <Modal isOpen={isOpen} onClose={handleClose} title="Add New Product" size="lg">
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Product Name */}
-        <Input label="Product Name" value={formData.name} onChange={e => setFormData({
-        ...formData,
-        name: e.target.value
-      })} placeholder="Enter product name" error={errors.name} required />
+        <Input 
+          label="Product Name"
+          value={formData.name}
+          onChange={e => setFormData({ ...formData, name: e.target.value })}
+          placeholder="Enter product name"
+          error={errors.name}
+          required
+        />
 
         {/* Description */}
-        <Textarea label="Description" value={formData.description} onChange={e => setFormData({
-        ...formData,
-        description: e.target.value
-      })} placeholder="Enter product description" rows={4} error={errors.description} required />
+        <Textarea 
+          label="Description"
+          value={formData.description}
+          onChange={e => setFormData({ ...formData, description: e.target.value })}
+          placeholder="Enter product description"
+          rows={4}
+          error={errors.description}
+          required
+        />
 
         {/* Price */}
-        <Input label="Price" type="number" step="0.01" min="0" value={formData.price} onChange={e => setFormData({
-        ...formData,
-        price: e.target.value
-      })} placeholder="0.00" error={errors.price} required />
+        <Input 
+          label="Price"
+          type="number"
+          step="0.01"
+          min="0"
+          value={formData.price}
+          onChange={e => setFormData({ ...formData, price: e.target.value })}
+          placeholder="0.00"
+          error={errors.price}
+          required
+        />
+
+        {/* Stock Quantity */}
+        <Input 
+          label="Stock Quantity"
+          type="number"
+          min="0"
+          value={formData.stockQuantity}
+          onChange={e => setFormData({ ...formData, stockQuantity: e.target.value })}
+          placeholder="100"
+          error={errors.stockQuantity}
+          required
+        />
+
+        {/* Low Stock Threshold */}
+        <Input 
+          label="Low Stock Threshold"
+          type="number"
+          min="0"
+          value={formData.lowStockThreshold}
+          onChange={e => setFormData({ ...formData, lowStockThreshold: e.target.value })}
+          placeholder="5"
+          error={errors.lowStockThreshold}
+          helperText="Alert when stock falls below this number"
+          required
+        />
 
         {/* Category */}
         <div>
@@ -225,7 +268,7 @@ export function AddProductModal({
             label="Category" 
             value={formData.category} 
             onChange={value => setFormData({ ...formData, category: value })} 
-            options={categoryOptions} // Dùng options từ API
+            options={categoryOptions}
             placeholder="Select a category" 
             error={errors.category} 
             required 
@@ -239,20 +282,34 @@ export function AddProductModal({
         </div>
 
         {/* Images */}
-        <ImageUpload label="Product Images" value={formData.images} onChange={images => setFormData({
-        ...formData,
-        images
-      })} maxImages={5} error={errors.images} />
+        <ImageUpload 
+          label="Product Images"
+          value={formData.images}
+          onChange={images => setFormData({ ...formData, images })}
+          maxImages={5}
+          error={errors.images}
+        />
 
         {/* Actions */}
         <div className="flex gap-3 pt-4 border-t">
-          <Button type="button" variant="secondary" onClick={handleClose} fullWidth>
+          <Button 
+            type="button" 
+            variant="secondary" 
+            onClick={handleClose} 
+            fullWidth
+          >
             Cancel
           </Button>
-          <Button type="submit" variant="primary" loading={loading} fullWidth>
+          <Button 
+            type="submit" 
+            variant="primary" 
+            loading={loading} 
+            fullWidth
+          >
             Add Product
           </Button>
         </div>
       </form>
-    </Modal>;
+    </Modal>
+  );
 }
