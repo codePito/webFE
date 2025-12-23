@@ -33,13 +33,22 @@ export interface Category {
   name: string;
   icon?: string;
   imageUrl?: string;
+  slug?: string;
+  productCount: number;
+  status: 'active' | 'inactive';
+  createdAt: Date;
 }
 
 export interface User {
   id: string;
   email: string;
   fullName: string;
+  phone?: string;
+  avatar?: string;
+  role: 'admin' | 'user' | 'seller';
+  status: 'active' | 'locked';
   createdAt: Date;
+  lastLogin?: Date;
 }
 
 export interface LoginCredentials {

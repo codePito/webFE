@@ -82,12 +82,13 @@ export function CheckoutPage() {
         // Gọi API lấy link Momo
         const paymentRes = await paymentApi.createMomoPayment({
           orderId: newOrder.id, // ID đơn hàng vừa tạo
-          returnUrl: window.location.origin , // User quay về đây
-          notifyUrl: "https://google.com" // URL backend nhận IPN
+          returnUrl: window.location.origin + "/payment-result", // ✅ User quay về trang kết quả
+          notifyUrl: "" // ✅ Để trống → Backend sẽ dùng NotifyUrl từ appsettings.json
         });
 
-        // Clear giỏ hàng client
-        clearCart();
+        // ✅ FIX: KHÔNG clear cart ở đây - chỉ clear khi thanh toán thành công
+        // Cart sẽ được clear tự động bởi backend khi IPN success
+        // Hoặc được clear trong PaymentResultPage sau khi verify Order.Status = Paid
 
         // Redirect sang Momo
         if (paymentRes.data.payUrl) {
@@ -96,10 +97,11 @@ export function CheckoutPage() {
           alert("Không lấy được link thanh toán!");
         }
       } else {
-        // COD
+        // COD - Thanh toán khi nhận hàng
+        // ✅ COD có thể clear cart ngay vì không cần chờ payment gateway
         clearCart();
         alert("Đặt hàng thành công! Mã đơn: #" + newOrder.id);
-        navigate('/'); // Hoặc trang lịch sử đơn hàng
+        navigate('/orders'); // Chuyển đến trang lịch sử đơn hàng
       }
 
     } catch (error) {
@@ -135,12 +137,12 @@ export function CheckoutPage() {
             <h2 className="text-xl font-semibold mt-6 mb-4">Phương thức thanh toán</h2>
             <div className="space-y-3">
                 {/* Custom Radio Button UI */}
-                <div onClick={() => setPaymentMethod('cod')} className={`p-4 border rounded-lg cursor-pointer flex items-center gap-3 ${paymentMethod === 'cod' ? 'border-orange-500 bg-orange-50' : ''}`}>
-                    <div className={`w-4 h-4 rounded-full border ${paymentMethod === 'cod' ? 'bg-orange-500 border-orange-500' : 'border-gray-400'}`}></div>
+                <div onClick={() => setPaymentMethod('cod')} className={`p-4 border rounded-lg cursor-pointer flex items-center gap-3 ${paymentMethod === 'cod' ? 'border-primary-500 bg-primary-50' : ''}`}>
+                    <div className={`w-4 h-4 rounded-full border ${paymentMethod === 'cod' ? 'bg-primary-500 border-primary-500' : 'border-gray-400'}`}></div>
                     <span>Thanh toán khi nhận hàng (COD)</span>
                 </div>
-                <div onClick={() => setPaymentMethod('ewallet')} className={`p-4 border rounded-lg cursor-pointer flex items-center gap-3 ${paymentMethod === 'ewallet' ? 'border-orange-500 bg-orange-50' : ''}`}>
-                    <div className={`w-4 h-4 rounded-full border ${paymentMethod === 'ewallet' ? 'bg-orange-500 border-orange-500' : 'border-gray-400'}`}></div>
+                <div onClick={() => setPaymentMethod('ewallet')} className={`p-4 border rounded-lg cursor-pointer flex items-center gap-3 ${paymentMethod === 'ewallet' ? 'border-primary-500 bg-primary-50' : ''}`}>
+                    <div className={`w-4 h-4 rounded-full border ${paymentMethod === 'ewallet' ? 'bg-primary-500 border-primary-500' : 'border-gray-400'}`}></div>
                     <img src="https://upload.wikimedia.org/wikipedia/vi/f/fe/MoMo_Logo.png" alt="Momo" className="h-6 w-6" />
                     <span>Ví MoMo</span>
                 </div>
@@ -161,7 +163,7 @@ export function CheckoutPage() {
             <div className="border-t pt-4 space-y-2">
                 <div className="flex justify-between"><span>Tạm tính</span><span>{formatCurrency(subtotal)}</span></div>
                 <div className="flex justify-between"><span>Phí ship</span><span>{formatCurrency(shippingFee)}</span></div>
-                <div className="flex justify-between text-xl font-bold text-orange-600 pt-2 border-t">
+                <div className="flex justify-between text-xl font-bold text-primary-600 pt-2 border-t">
                     <span>Tổng cộng</span>
                     <span>{formatCurrency(total)}</span>
                 </div>

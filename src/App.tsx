@@ -28,6 +28,7 @@ import { CartModal } from './src/components/cart/CartModal';
 import { AuthModal } from './src/components/auth/AuthModal';
 import { PaymentResultPage } from './src/pages/PaymentResultPage';
 import { OrderHistoryPage } from './src/pages/OrderHistoryPage';
+import { UserProfilePage } from './src/pages/UserProfilePage';
 export function App() {
   return <BrowserRouter>
       <AuthProvider>
@@ -48,6 +49,7 @@ export function App() {
                       <Route path="/search" element={<SearchPage />} />
                       <Route path="/payment-result" element={<PaymentResultPage/>} />
                       <Route path="orders" element={<OrderHistoryPage/>}/>
+                      <Route path="profile" element={<UserProfilePage/>}/>
                     </Routes>
                   </UserLayout>} />
 

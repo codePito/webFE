@@ -51,7 +51,7 @@ export function CategoryFilter() {
             to={`/category/${category.id}`}
             className={`flex flex-col items-center gap-2 p-3 rounded-lg transition-all ${
               categoryId === category.id
-                ? 'bg-orange-50 border-2 border-orange-500'
+                ? 'bg-primary-50 border-2 border-primary-500'
                 : 'bg-gray-50 hover:bg-gray-100 border-2 border-transparent'
             }`}
           >

@@ -66,7 +66,7 @@ export function ProductCard({ product }: ProductCardProps) {
       </div>
 
       <div className="p-4 flex flex-col flex-1">
-        <h3 className="font-medium text-gray-900 mb-2 line-clamp-2 group-hover:text-orange-600 transition-colors">
+        <h3 className="font-medium text-gray-900 mb-2 line-clamp-2 group-hover:text-primary-600 transition-colors">
           {product.name}
         </h3>
 
@@ -79,7 +79,7 @@ export function ProductCard({ product }: ProductCardProps) {
         </div>
 
         <div className="flex items-baseline gap-2 mb-2">
-          <span className="text-xl font-bold text-orange-600">
+          <span className="text-xl font-bold text-primary-600">
             {formatCurrency(product.price)}
           </span>
           {product.originalPrice && (
@@ -94,7 +94,7 @@ export function ProductCard({ product }: ProductCardProps) {
             {formatNumber(product.soldCount)} sold
           </p>
           {!product.isOutOfStock && product.stock <= 10 && (
-            <p className="text-xs text-orange-600 font-medium">
+            <p className="text-xs text-primary-600 font-medium">
               Only {product.stock} left!
             </p>
           )}

@@ -23,6 +23,10 @@ const cartApi = {
 
     removeFromCart: (itemId: number | string) => {
         return axiosClient.delete(`/Cart/${itemId}`);
+    },
+
+    clearCart: () => {
+        return axiosClient.delete("/Cart/clear");
     }
 };
 

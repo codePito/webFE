@@ -35,14 +35,14 @@ export function RegisterPage() {
       setError('Registration failed. Please try again.');
     }
   };
-  return <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 flex items-center justify-center p-4">
+  return <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
-        <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-8 text-white text-center">
+        <div className="bg-gradient-to-r from-primary-500 to-primary-600 p-8 text-white text-center">
           <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4">
-            <ShoppingBag className="w-8 h-8 text-orange-600" />
+            <ShoppingBag className="w-8 h-8 text-primary-600" />
           </div>
           <h1 className="text-3xl font-bold mb-2">Join ShopHub</h1>
-          <p className="text-orange-100">
+          <p className="text-primary-100">
             Create your account to start shopping
           </p>
         </div>
@@ -84,7 +84,7 @@ export function RegisterPage() {
           <div className="text-center space-y-2">
             <p className="text-sm text-gray-600">
               Already have an account?{' '}
-              <Link to="/login" className="text-orange-600 font-medium hover:text-orange-700">
+              <Link to="/login" className="text-primary-600 font-medium hover:text-primary-700">
                 Sign in
               </Link>
             </p>

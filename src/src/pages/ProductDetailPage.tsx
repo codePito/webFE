@@ -98,7 +98,7 @@ export function ProductDetailPage() {
               </div>
 
               <div className="flex items-baseline gap-3 mb-6">
-                <span className="text-4xl font-bold text-orange-600">
+                <span className="text-4xl font-bold text-primary-600">
                   {formatCurrency(product.price)}
                 </span>
                 {product.originalPrice && (
@@ -126,7 +126,7 @@ export function ProductDetailPage() {
                   )}
                 </div>
                 {product.isLowStock && !product.isOutOfStock && (
-                  <div className="flex items-center gap-2 text-sm text-orange-600 mt-2">
+                  <div className="flex items-center gap-2 text-sm text-primary-600 mt-2">
                     <AlertTriangle className="w-4 h-4" />
                     <span>Hurry! Only {product.stock} items left</span>
                   </div>

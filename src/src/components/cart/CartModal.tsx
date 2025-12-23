@@ -50,8 +50,8 @@ export function CartModal() {
             </div>
 
             <div className="border-t p-4 space-y-3">
-              {subtotal < FREE_SHIPPING_THRESHOLD && <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
-                  <p className="text-sm text-orange-800">
+              {subtotal < FREE_SHIPPING_THRESHOLD && <div className="bg-primary-50 border border-primary-200 rounded-lg p-3">
+                  <p className="text-sm text-primary-800">
                     Add {formatCurrency(FREE_SHIPPING_THRESHOLD - subtotal)}{' '}
                     more for free shipping!
                   </p>
@@ -72,7 +72,7 @@ export function CartModal() {
                 </div>
                 <div className="flex justify-between text-lg font-bold pt-2 border-t">
                   <span>Total</span>
-                  <span className="text-orange-600">
+                  <span className="text-primary-600">
                     {formatCurrency(total)}
                   </span>
                 </div>

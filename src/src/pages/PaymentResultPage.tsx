@@ -1,15 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { Button } from '../components/shared/Button';
+import paymentApi from '../api/paymentApi';
+import cartApi from '../api/cartApi';
 import orderApi from '../api/orderApi';
-import { Order } from '../types';
+import { useCart } from '../context/CartContext';
 
 export function PaymentResultPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { clearCart } = useCart();
   const [loading, setLoading] = useState(true);
-  const [order, setOrder] = useState<Order | null>(null);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const confirmedRef = useRef(false); // Tránh gọi confirm 2 lần (React StrictMode)
   
   // Backend redirect về kèm params
   const orderId = searchParams.get('orderId');
@@ -21,24 +25,75 @@ export function PaymentResultPage() {
         return;
     }
 
-    // Gọi API lấy chi tiết đơn hàng để check trạng thái mới nhất từ DB
-    const checkOrderStatus = async () => {
+    // ✅ FIX: Verify Order status trước khi clear cart
+    const confirmAndFetchOrder = async () => {
+        // Tránh gọi 2 lần do React StrictMode
+        if (confirmedRef.current) return;
+        confirmedRef.current = true;
+
         try {
-            const res = await orderApi.getById(parseInt(orderId));
-            setOrder(res.data);
+            // Bước 1: Gọi confirm payment (fallback khi IPN không hoạt động)
+            // resultCode = 0 là thành công từ MoMo
+            const resultCodeNum = parseInt(resultCode || '-1');
+            
+            try {
+                await paymentApi.confirmPayment(parseInt(orderId), resultCodeNum);
+                console.log('Payment confirmed successfully');
+            } catch (confirmError) {
+                // Không block flow nếu confirm fail (có thể đã được IPN xử lý)
+                console.warn('Confirm payment failed (may already be processed):', confirmError);
+            }
+
+            // Bước 2: ✅ Verify Order status từ backend
+            try {
+                const orderRes = await orderApi.getById(orderId);
+                const order = orderRes.data;
+                
+                console.log('Order status:', order.status);
+                
+                // ✅ Chỉ clear cart nếu Order.Status = Paid (2)
+                if (order.status === 2) { // OrderStatus.Paid = 2
+                    try {
+                        // Gọi API backend để xóa cart trong DB
+                        await cartApi.clearCart();
+                        console.log('Cart cleared successfully');
+                    } catch (clearError) {
+                        console.warn('Clear cart failed (may already be cleared):', clearError);
+                    }
+                    // Xóa cart state local
+                    clearCart();
+                    setPaymentSuccess(true);
+                } else {
+                    console.log('Order not paid yet, cart not cleared');
+                    setPaymentSuccess(false);
+                }
+            } catch (orderError) {
+                console.error('Failed to fetch order:', orderError);
+                // Fallback: Nếu không lấy được order, dùng resultCode
+                const isSuccess = resultCodeNum === 0;
+                if (isSuccess) {
+                    try {
+                        await cartApi.clearCart();
+                        clearCart();
+                        setPaymentSuccess(true);
+                    } catch (clearError) {
+                        console.warn('Clear cart failed:', clearError);
+                    }
+                }
+            }
         } catch (error) {
-            console.error("Failed to fetch order", error);
+            console.error("Failed to process payment result", error);
         } finally {
             setLoading(false);
         }
     };
 
-    checkOrderStatus();
-  }, [orderId]);
+    confirmAndFetchOrder();
+  }, [orderId, resultCode, clearCart]);
 
-  if (loading) return <div className="h-screen flex justify-center items-center"><Loader2 className="animate-spin w-10 h-10 text-orange-500"/></div>;
+  if (loading) return <div className="h-screen flex justify-center items-center"><Loader2 className="animate-spin w-10 h-10 text-primary-500"/></div>;
 
-  const isSuccess = resultCode === '0' || order?.status === 'Paid';
+  const isSuccess = resultCode === '0' || paymentSuccess;
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">

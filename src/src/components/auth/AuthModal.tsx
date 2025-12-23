@@ -92,7 +92,7 @@ export function AuthModal() {
 
                 <p className="text-center text-sm text-gray-600">
                   Don't have an account?{' '}
-                  <button type="button" onClick={switchMode} className="text-orange-600 font-medium hover:text-orange-700">
+                  <button type="button" onClick={switchMode} className="text-primary-600 font-medium hover:text-primary-700">
                     Sign up
                   </button>
                 </p>
@@ -129,7 +129,7 @@ export function AuthModal() {
 
                 <p className="text-center text-sm text-gray-600">
                   Already have an account?{' '}
-                  <button type="button" onClick={switchMode} className="text-orange-600 font-medium hover:text-orange-700">
+                  <button type="button" onClick={switchMode} className="text-primary-600 font-medium hover:text-primary-700">
                     Sign in
                   </button>
                 </p>
