@@ -2,32 +2,26 @@ trigger:
   - main
 
 pool:
-  vmImage: 'windows-latest'
+  vmImage: 'ubuntu-latest'
 
 variables:
   NODE_VERSION: '18.x'
 
 steps:
-# 1. Cài Node.js
 - task: NodeTool@0
   inputs:
     versionSpec: $(NODE_VERSION)
   displayName: 'Install Node.js'
 
-# 2. Cài dependencies
-- script: |
-    npm install
+- script: npm install
   displayName: 'Install dependencies'
 
-# 3. Build project
-- script: |
-    npm run build
+- script: npm run build
   displayName: 'Build React App'
 
-# 4. Deploy lên Azure Static Web App
 - task: AzureStaticWebApp@0
   displayName: 'Deploy to Azure Static Web App'
   inputs:
-    app_location: "/"              # root project
-    output_location: "dist"        # Vite => dist | CRA => build
+    app_location: "/"
+    output_location: "dist"
     azure_static_web_apps_api_token: $(AZURE_STATIC_WEB_APPS_API_TOKEN)
