@@ -20,6 +20,7 @@ export interface OrderResponse {
     createdAt: string;
     totalAmount: number;
     currency: string;
+    shippingAddress?: string;
     status: OrderStatus;
     items: OrderItemResponse[];
 }
@@ -64,35 +65,39 @@ export interface OrderRequest {
 const orderApi = {
     /**
      * Tạo đơn hàng mới
-     * POST /api/Order
-     * Auth: Required (userId lấy từ token claim)
+     * POST /api/order (số ít)
      */
     create: (data: OrderRequest) => {
-        return axiosClient.post<OrderResponse>("/Order", data);
+        return axiosClient.post<OrderResponse>("/order", data);
     },
 
     /**
      * Lấy chi tiết đơn hàng theo ID
-     * GET /api/Order/{id}
-     * Auth: None (nhưng nên có để bảo mật)
+     * GET /api/order/{id} (số ít)
      */
     getById: (id: number | string) => {
-        return axiosClient.get<OrderResponse>(`/Order/${id}`);
+        return axiosClient.get<OrderResponse>(`/order/${id}`);
     },
 
     /**
      * Lấy danh sách đơn hàng của user
      * GET /user/{userId}
-     * Auth: Required
-     * ⚠️ Backend dùng absolute path /user/{userId} (không có /api prefix)
+     * ⚠️ Backend dùng absolute path /user/{userId}
      */
     getByUserId: (userId: number | string) => {
-        // Backend endpoint là absolute: /user/{userId} (không có /api)
         const baseUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || '';
         const token = localStorage.getItem('access_token');
         return axios.get<OrderResponse[]>(`${baseUrl}/user/${userId}`, {
             headers: token ? { Authorization: `Bearer ${token}` } : {}
         });
+    },
+
+    /**
+     * Lấy tất cả orders (ADMIN ONLY)
+     * GET /api/orders (số nhiều)
+     */
+    getAllOrders: () => {
+        return axiosClient.get<OrderResponse[]>("/orders");
     },
 
     // ═══════════════════════════════════════════════════════════════
@@ -101,18 +106,18 @@ const orderApi = {
 
     /**
      * Xóa đơn hàng (ADMIN)
-     * DELETE /api/Order/{id}
+     * DELETE /api/order/{id} (số ít)
      */
     deleteOrder: (id: number) => {
-        return axiosClient.delete(`/Order/${id}`);
+        return axiosClient.delete(`/order/${id}`);
     },
 
     /**
      * Cập nhật trạng thái đơn hàng (ADMIN)
-     * PATCH /api/Order/{id}/status
+     * PATCH /api/order/{id}/status (số ít)
      */
     updateStatus: (id: number, status: OrderStatus) => {
-        return axiosClient.patch(`/Order/${id}/status`, status, {
+        return axiosClient.patch(`/order/${id}/status`, status, {
             headers: { 'Content-Type': 'application/json' }
         });
     }

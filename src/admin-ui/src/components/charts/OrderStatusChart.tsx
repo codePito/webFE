@@ -1,7 +1,12 @@
-import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { Card } from '../common/Card';
-import { OrderStatusData } from '../../types';
+
+interface OrderStatusData {
+  status: string;
+  count: number;
+  color: string;
+}
+
 interface OrderStatusChartProps {
   data: OrderStatusData[];
 }

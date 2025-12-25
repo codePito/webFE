@@ -2,14 +2,20 @@ import React, { useEffect, useState, createContext, useContext } from 'react';
 import authApi from '../api/authApi';
 
 const ROLE_CLAIM_KEY = 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role';
-const EMAIL_CLAIM_KEY = 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name';
+const EMAIL_CLAIM_KEY = 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress';
+const NAME_CLAIM_KEY = 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name';
 const ID_CLAIM_KEY = 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier';
+const PHONE_CLAIM_KEY = 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/mobilephone';
+const ADDRESS_CLAIM_KEY = 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/streetaddress';
+
+// Note: createdAt is a custom claim, not a standard ClaimTypes, so it's just "createdAt"
 
 export interface User {
   id: string;
   email: string;
   fullName: string;
   phone?: string;
+  address?: string;
   role: 'user' | 'admin' | 'seller';
   avatar?: string;
   createdAt: Date;
@@ -25,6 +31,7 @@ interface RegisterData {
   password: string;
   userName: string;
   address: string;
+  phoneNumber: string;
 }
 
 interface AuthContextType {
@@ -101,24 +108,43 @@ export function AuthProvider({
         
         if (!decoded) return false;
 
-        // === BƯỚC ÁNH XẠ VÀ CHUẨN HÓA DỮ LIỆU ĐÃ SỬA ===
+        console.log('Decoded JWT token:', decoded);
+
+        // === ÁNH XẠ DỮ LIỆU TỪ JWT TOKEN ===
         const role = decoded[ROLE_CLAIM_KEY] || decoded.role;
         const email = decoded[EMAIL_CLAIM_KEY] || decoded.email || credentials.email;
-        const fullName = decoded[EMAIL_CLAIM_KEY] || decoded.name || email.split('@')[0];
+        const fullName = decoded[NAME_CLAIM_KEY] || decoded.name || email.split('@')[0];
+        const phone = decoded[PHONE_CLAIM_KEY] || decoded.phone || '';
+        const address = decoded[ADDRESS_CLAIM_KEY] || decoded.address || '';
+        
+        // Parse createdAt - có thể là string hoặc undefined
+        let createdAtDate: Date;
+        const createdAtValue = decoded.createdAt || decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/createdAt'];
+        
+        if (createdAtValue) {
+            createdAtDate = new Date(createdAtValue);
+            // Kiểm tra nếu date không hợp lệ
+            if (isNaN(createdAtDate.getTime())) {
+                console.warn('Invalid createdAt date, using current date');
+                createdAtDate = new Date();
+            }
+        } else {
+            console.warn('No createdAt in token, using current date');
+            createdAtDate = new Date();
+        }
         
         const userInfo: User = {
             id: decoded[ID_CLAIM_KEY] || decoded.id || 'unknown-id',
             email: email,
             fullName: fullName,
-            phone: decoded.phone,
-            
-            // CHUẨN HÓA: Bắt buộc chuyển Role sang chữ thường (Admin -> admin)
-            role: role ? role.toLowerCase() : 'user', 
-            
+            phone: phone,
+            address: address,
+            role: role ? role.toLowerCase() : 'user',
             avatar: decoded.avatar,
-            createdAt: new Date()
+            createdAt: createdAtDate
         };
-        // ===================================
+
+        console.log('User info from JWT token:', userInfo);
 
         setUser(userInfo);
         
@@ -131,14 +157,10 @@ export function AuthProvider({
   };
 
   const register = async (data: RegisterData): Promise<boolean> => {
-    try {
-      await authApi.register(data);
-      setIsAuthModalOpen(false);
-      return true;
-    } catch (error) {
-      console.error("Registed failed", error);
-      return false;
-    }
+    // Không catch error ở đây, để RegisterPage xử lý chi tiết
+    await authApi.register(data);
+    setIsAuthModalOpen(false);
+    return true;
   };
 
   const logout = () => {

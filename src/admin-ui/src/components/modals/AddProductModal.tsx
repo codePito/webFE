@@ -118,12 +118,50 @@ export function AddProductModal({ isOpen, onClose, onAdd }: AddProductModalProps
 
   const validateForm = () => {
     const e: ProductFormErrors = {};
-    if (!formData.name) e.name = 'Required';
-    if (!formData.description) e.description = 'Required';
-    if (!formData.price || Number(formData.price) <= 0) e.price = 'Invalid';
-    if (!formData.category) e.category = 'Required';
-    if (Number(formData.stockQuantity) < 0) e.stockQuantity = 'Invalid';
-    if (Number(formData.lowStockThreshold) < 0) e.lowStockThreshold = 'Invalid';
+    
+    // Name validation (3-200 chars)
+    if (!formData.name.trim()) {
+      e.name = 'Product name is required';
+    } else if (formData.name.length < 3) {
+      e.name = 'Name must be at least 3 characters';
+    } else if (formData.name.length > 200) {
+      e.name = 'Name cannot exceed 200 characters';
+    }
+    
+    // Description validation (20-2000 chars)
+    if (!formData.description.trim()) {
+      e.description = 'Product description is required';
+    } else if (formData.description.length < 20) {
+      e.description = 'Description must be at least 20 characters';
+    } else if (formData.description.length > 2000) {
+      e.description = 'Description cannot exceed 2000 characters';
+    }
+    
+    // Price validation (> 0)
+    if (!formData.price) {
+      e.price = 'Product price is required';
+    } else if (Number(formData.price) <= 0) {
+      e.price = 'Product price must be greater than 0';
+    }
+    
+    // Category validation
+    if (!formData.category) {
+      e.category = 'Category is required';
+    }
+    
+    // Stock quantity validation (>= 0)
+    if (formData.stockQuantity === '') {
+      e.stockQuantity = 'Stock quantity is required';
+    } else if (Number(formData.stockQuantity) < 0) {
+      e.stockQuantity = 'Stock quantity cannot be negative';
+    }
+    
+    // Low stock threshold validation (>= 0)
+    if (formData.lowStockThreshold === '') {
+      e.lowStockThreshold = 'Low stock threshold is required';
+    } else if (Number(formData.lowStockThreshold) < 0) {
+      e.lowStockThreshold = 'Low stock threshold cannot be negative';
+    }
 
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -182,50 +220,78 @@ export function AddProductModal({ isOpen, onClose, onAdd }: AddProductModalProps
       {!createdProductId ? (
         /* ===== STEP 1 ===== */
         <form onSubmit={handleSubmit} className="space-y-5">
-          <Input
-            label="Product Name"
-            value={formData.name}
-            onChange={e => setFormData({ ...formData, name: e.target.value })}
-            error={errors.name}
-            required
-          />
+          <div>
+            <Input
+              label="Product Name"
+              value={formData.name}
+              onChange={e => setFormData({ ...formData, name: e.target.value })}
+              error={errors.name}
+              placeholder="Enter product name"
+              required
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              3-200 characters • {formData.name.length}/200
+            </p>
+          </div>
 
-          <Textarea
-            label="Description"
-            value={formData.description}
-            onChange={e => setFormData({ ...formData, description: e.target.value })}
-            error={errors.description}
-            required
-          />
+          <div>
+            <Textarea
+              label="Description"
+              value={formData.description}
+              onChange={e => setFormData({ ...formData, description: e.target.value })}
+              error={errors.description}
+              placeholder="Enter detailed product description"
+              required
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              20-2000 characters • {formData.description.length}/2000
+            </p>
+          </div>
 
-          <Input
-            label="Price"
-            type="number"
-            value={formData.price}
-            onChange={e => setFormData({ ...formData, price: e.target.value })}
-            error={errors.price}
-            required
-          />
+          <div>
+            <Input
+              label="Price"
+              type="number"
+              step="0.01"
+              min="0.01"
+              value={formData.price}
+              onChange={e => setFormData({ ...formData, price: e.target.value })}
+              error={errors.price}
+              placeholder="0.00"
+              required
+            />
+            <p className="mt-1 text-xs text-gray-500">Must be greater than 0</p>
+          </div>
 
-          <Input
-            label="Stock Quantity"
-            type="number"
-            value={formData.stockQuantity}
-            onChange={e => setFormData({ ...formData, stockQuantity: e.target.value })}
-            error={errors.stockQuantity}
-            required
-          />
+          <div>
+            <Input
+              label="Stock Quantity"
+              type="number"
+              min="0"
+              value={formData.stockQuantity}
+              onChange={e => setFormData({ ...formData, stockQuantity: e.target.value })}
+              error={errors.stockQuantity}
+              placeholder="100"
+              required
+            />
+            <p className="mt-1 text-xs text-gray-500">Cannot be negative</p>
+          </div>
 
-          <Input
-            label="Low Stock Threshold"
-            type="number"
-            value={formData.lowStockThreshold}
-            onChange={e =>
-              setFormData({ ...formData, lowStockThreshold: e.target.value })
-            }
-            error={errors.lowStockThreshold}
-            required
-          />
+          <div>
+            <Input
+              label="Low Stock Threshold"
+              type="number"
+              min="0"
+              value={formData.lowStockThreshold}
+              onChange={e =>
+                setFormData({ ...formData, lowStockThreshold: e.target.value })
+              }
+              error={errors.lowStockThreshold}
+              placeholder="5"
+              required
+            />
+            <p className="mt-1 text-xs text-gray-500">Alert when stock falls below this number</p>
+          </div>
 
           <Select
             label="Category"

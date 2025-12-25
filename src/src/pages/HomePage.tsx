@@ -1,14 +1,26 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, TrendingUp, Shield, Truck } from 'lucide-react';
+import { ArrowRight, TrendingUp, Shield, Truck, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useProducts } from '../context/ProductContext';
 import { ProductGrid } from '../components/product/ProductGrid';
 import { CategoryFilter } from '../components/product/CategoryFilter';
+
+const PRODUCTS_PER_PAGE = 12;
+
 export function HomePage() {
-  const {
-    products
-  } = useProducts();
-  const featuredProducts = products.slice(0, 10);
+  const { products } = useProducts();
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Pagination logic
+  const totalPages = Math.ceil(products.length / PRODUCTS_PER_PAGE);
+  const startIndex = (currentPage - 1) * PRODUCTS_PER_PAGE;
+  const endIndex = startIndex + PRODUCTS_PER_PAGE;
+  const currentProducts = products.slice(startIndex, endIndex);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
   return <div className="min-h-screen">
       {/* Hero Banner */}
       <div className="bg-gradient-to-r from-primary-500 to-primary-600 text-white">
@@ -72,14 +84,71 @@ export function HomePage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <CategoryFilter />
 
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Featured Products
-          </h2>
-          <p className="text-gray-600">Handpicked deals just for you</p>
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              All Products
+            </h2>
+            <p className="text-gray-600">
+              Showing {startIndex + 1}-{Math.min(endIndex, products.length)} of {products.length} products
+            </p>
+          </div>
         </div>
 
-        <ProductGrid products={featuredProducts} />
+        <ProductGrid products={currentProducts} />
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="mt-8 flex items-center justify-center gap-2">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+
+            <div className="flex gap-2">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                // Show first page, last page, current page, and pages around current
+                const showPage = 
+                  page === 1 || 
+                  page === totalPages || 
+                  (page >= currentPage - 1 && page <= currentPage + 1);
+
+                if (!showPage) {
+                  // Show ellipsis
+                  if (page === currentPage - 2 || page === currentPage + 2) {
+                    return <span key={page} className="px-3 py-2">...</span>;
+                  }
+                  return null;
+                }
+
+                return (
+                  <button
+                    key={page}
+                    onClick={() => handlePageChange(page)}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                      currentPage === page
+                        ? 'bg-primary-600 text-white'
+                        : 'border border-gray-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                );
+              })}
+            </div>
+
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
+        )}
       </div>
     </div>;
 }

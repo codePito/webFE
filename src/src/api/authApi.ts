@@ -2,7 +2,7 @@ import axiosClient from "./axiosClient";
 
 const authApi = {
     login: (params: {email: string; password: string}) =>
-        axiosClient.post("/User/login", null, {
+        axiosClient.post("/user/login", null, {
             params: {
                 email: params.email,
                 password: params.password
@@ -10,9 +10,9 @@ const authApi = {
         }),
 
     register: (body: any) =>
-        axiosClient.post("/User/register", body),
+        axiosClient.post("/user/register", body),
 
-    getAllUsers: () => axiosClient.get("/User")
+    getAllUsers: () => axiosClient.get("/users")  // GET list users
 };
 
 export default authApi;

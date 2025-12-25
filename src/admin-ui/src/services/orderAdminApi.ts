@@ -21,6 +21,7 @@ export interface AdminOrderResponse {
     createdAt: string;
     totalAmount: number;
     currency: string;
+    shippingAddress?: string;
     status: number; // Backend trả về enum number
     items: OrderItemResponse[];
 }
@@ -85,36 +86,34 @@ apiClient.interceptors.request.use(
 const orderAdminApi = {
     /**
      * Lấy tất cả orders (ADMIN ONLY)
-     * GET /api/Order
-     * Auth: Required (Role: Admin)
+     * GET /api/orders (số nhiều)
      */
     getAll: () => {
-        return apiClient.get<AdminOrderResponse[]>('/Order');
+        return apiClient.get<AdminOrderResponse[]>('/orders');
     },
 
     /**
      * Lấy chi tiết order theo ID
-     * GET /api/Order/{id}
+     * GET /api/order/{id} (số ít)
      */
     getById: (id: number) => {
-        return apiClient.get<AdminOrderResponse>(`/Order/${id}`);
+        return apiClient.get<AdminOrderResponse>(`/order/${id}`);
     },
 
     /**
      * Cập nhật trạng thái order (ADMIN)
-     * PATCH /api/Order/{id}/status
-     * Body: OrderStatus (number)
+     * PATCH /api/order/{id}/status (số ít)
      */
     updateStatus: (id: number, status: OrderStatus) => {
-        return apiClient.patch<boolean>(`/Order/${id}/status`, status);
+        return apiClient.patch<boolean>(`/order/${id}/status`, status);
     },
 
     /**
      * Xóa order (ADMIN)
-     * DELETE /api/Order/{id}
+     * DELETE /api/order/{id} (số ít)
      */
     deleteOrder: (id: number) => {
-        return apiClient.delete<boolean>(`/Order/${id}`);
+        return apiClient.delete<boolean>(`/order/${id}`);
     }
 };
 

@@ -13,26 +13,49 @@ export function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [formData, setFormData] = useState({
     userName: '',
     email: '',
     address: '',
+    phoneNumber: '',
     password: ''
   });
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters');
-      return;
-    }
+    setFieldErrors({});
+    
     setLoading(true);
-    const success = await register(formData);
-    setLoading(false);
-    if (success) {
+    try {
+      await register(formData);
+      setLoading(false);
       navigate('/');
-    } else {
-      setError('Registration failed. Please try again.');
+    } catch (err: any) {
+      setLoading(false);
+      
+      console.log('Registration error:', err);
+      console.log('Error response:', err.response);
+      console.log('Error data:', err.response?.data);
+      
+      // Handle validation errors from backend
+      if (err.response?.status === 400 && err.response?.data?.errors) {
+        const errors = err.response.data.errors;
+        setFieldErrors(errors);
+        
+        // Count total errors
+        const errorCount = Object.keys(errors).length;
+        setError(`Please fix ${errorCount} validation error${errorCount > 1 ? 's' : ''} below`);
+        
+        console.log('Validation errors:', errors);
+      } else if (err.response?.data?.title) {
+        // Handle other error formats
+        setError(err.response.data.title);
+      } else if (err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else {
+        setError('Registration failed. Please check your information and try again.');
+      }
     }
   };
   return <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center p-4">
@@ -47,35 +70,114 @@ export function RegisterPage() {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-8 space-y-6">
-          <Input label="Full Name" value={formData.userName} onChange={e => setFormData({
-          ...formData,
-          userName: e.target.value
-        })} placeholder="John Doe" required />
-
-          <Input label="Email" type="email" value={formData.email} onChange={e => setFormData({
-          ...formData,
-          email: e.target.value
-        })} placeholder="your@email.com" required />
-
-          <Input label="Addess (Optional)" type="adress" value={formData.address} onChange={e => setFormData({
-          ...formData,
-          address: e.target.value
-        })} placeholder="Adress" />
-
-          <div className="relative">
-            <Input label="Password" type={showPassword ? 'text' : 'password'} value={formData.password} onChange={e => setFormData({
-            ...formData,
-            password: e.target.value
-          })} placeholder="••••••••" required />
-            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-9 text-gray-400 hover:text-gray-600">
-              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-            </button>
+        <form onSubmit={handleSubmit} className="p-8 space-y-5">
+          <div>
+            <Input 
+              label="Full Name" 
+              value={formData.userName} 
+              onChange={e => setFormData({ ...formData, userName: e.target.value })} 
+              placeholder="John Doe" 
+              required 
+            />
+            {fieldErrors.UserName && (
+              <div className="mt-1 text-sm text-red-600">
+                {fieldErrors.UserName.map((err, idx) => (
+                  <p key={idx}>• {err}</p>
+                ))}
+              </div>
+            )}
+            <p className="mt-1 text-xs text-gray-500">5-50 characters, Vietnamese/English letters, numbers, spaces allowed</p>
           </div>
 
-          {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-              {error}
-            </div>}
+          <div>
+            <Input 
+              label="Email" 
+              type="email" 
+              value={formData.email} 
+              onChange={e => setFormData({ ...formData, email: e.target.value })} 
+              placeholder="your@email.com" 
+              required 
+            />
+            {fieldErrors.Email && (
+              <div className="mt-1 text-sm text-red-600">
+                {fieldErrors.Email.map((err, idx) => (
+                  <p key={idx}>• {err}</p>
+                ))}
+              </div>
+            )}
+            <p className="mt-1 text-xs text-gray-500">Valid email format required</p>
+          </div>
+
+          <div>
+            <Input 
+              label="Phone Number" 
+              type="tel" 
+              value={formData.phoneNumber} 
+              onChange={e => setFormData({ ...formData, phoneNumber: e.target.value })} 
+              placeholder="0123456789" 
+              required 
+            />
+            {fieldErrors.PhoneNumber && (
+              <div className="mt-1 text-sm text-red-600">
+                {fieldErrors.PhoneNumber.map((err, idx) => (
+                  <p key={idx}>• {err}</p>
+                ))}
+              </div>
+            )}
+            <p className="mt-1 text-xs text-gray-500">Start with 0, followed by 9-10 digits</p>
+          </div>
+
+          <div>
+            <Input 
+              label="Address" 
+              value={formData.address} 
+              onChange={e => setFormData({ ...formData, address: e.target.value })} 
+              placeholder="Your address" 
+              required 
+            />
+            {fieldErrors.Address && (
+              <div className="mt-1 text-sm text-red-600">
+                {fieldErrors.Address.map((err, idx) => (
+                  <p key={idx}>• {err}</p>
+                ))}
+              </div>
+            )}
+            <p className="mt-1 text-xs text-gray-500">Maximum 200 characters</p>
+          </div>
+
+          <div className="relative">
+            <Input 
+              label="Password" 
+              type={showPassword ? 'text' : 'password'} 
+              value={formData.password} 
+              onChange={e => setFormData({ ...formData, password: e.target.value })} 
+              placeholder="••••••••" 
+              required 
+            />
+            <button 
+              type="button" 
+              onClick={() => setShowPassword(!showPassword)} 
+              className="absolute right-3 top-9 text-gray-400 hover:text-gray-600"
+            >
+              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+            </button>
+            {fieldErrors.Password && (
+              <div className="mt-1 text-sm text-red-600">
+                {fieldErrors.Password.map((err, idx) => (
+                  <p key={idx}>• {err}</p>
+                ))}
+              </div>
+            )}
+            <p className="mt-1 text-xs text-gray-500">
+              Min 8 characters, must include uppercase, lowercase, and digit
+            </p>
+          </div>
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+              <p className="font-medium">{error}</p>
+            </div>
+          )}
 
           <Button type="submit" variant="primary" size="lg" fullWidth disabled={loading}>
             {loading ? 'Creating account...' : 'Create Account'}

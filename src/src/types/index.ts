@@ -69,6 +69,7 @@ export interface Order {
   createdAt: string;
   totalAmount: number;
   currency: string;
+  shippingAddress?: string;
   status: 'Pending' | 'PaymentPending' | 'Paid' | 'Cancelled' | 'Failed';
   items: OrderItem[];
 }
@@ -91,6 +92,7 @@ export interface OrderRequest {
   userId: number;
   items: OrderItemRequest[];
   currency: string;
+  shippingAddress: string;
 }
 
 export interface MomoPaymentRequest {

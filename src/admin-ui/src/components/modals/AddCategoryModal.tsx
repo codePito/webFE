@@ -58,10 +58,21 @@ export function AddCategoryModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    
+    // Validation matching backend
     if (!categoryName.trim()) {
       setError('Category name is required');
       return;
     }
+    if (categoryName.length < 2) {
+      setError('Category name must be at least 2 characters');
+      return;
+    }
+    if (categoryName.length > 100) {
+      setError('Category name cannot exceed 100 characters');
+      return;
+    }
+    
     setLoading(true);
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 500));
@@ -77,7 +88,19 @@ export function AddCategoryModal({
   };
   return <Modal isOpen={isOpen} onClose={handleClose} title="Add New Category" size="sm">
       <form onSubmit={handleSubmit} className="space-y-4">
-        <Input label="Category Name" value={categoryName} onChange={e => setCategoryName(e.target.value)} placeholder="Enter category name" error={error} required />
+        <div>
+          <Input 
+            label="Category Name" 
+            value={categoryName} 
+            onChange={e => setCategoryName(e.target.value)} 
+            placeholder="Enter category name" 
+            error={error} 
+            required 
+          />
+          <p className="mt-1 text-xs text-gray-500">
+            2-100 characters • {categoryName.length}/100
+          </p>
+        </div>
 
         <div className="flex gap-3 pt-4">
           <Button type="button" variant="secondary" onClick={handleClose} fullWidth>

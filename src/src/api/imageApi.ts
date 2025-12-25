@@ -53,34 +53,34 @@ const imageApi = {
 
     /**
      * Lấy danh sách ảnh của Product
-     * GET /api/Image/Product/{productId}
+     * GET /api/image/Product/{productId}
      */
     getProductImages: (productId: number) =>
-        axiosClient.get<ImageModel[]>(`/Image/Product/${productId}`),
+        axiosClient.get<ImageModel[]>(`/image/Product/${productId}`),
 
     /**
      * Lấy danh sách ảnh theo entity type (Product, User, Category)
-     * GET /api/Image/{entityType}/{entityId}
+     * GET /api/image/{entityType}/{entityId}
      */
     getEntityImages: (entityType: string, entityId: number) =>
-        axiosClient.get<ImageModel[]>(`/Image/${entityType}/${entityId}`),
+        axiosClient.get<ImageModel[]>(`/image/${entityType}/${entityId}`),
 
     /**
      * Lấy ảnh Primary của entity
-     * GET /api/Image/{entityType}/{entityId}/primary
+     * GET /api/image/{entityType}/{entityId}/primary
      */
     getPrimaryImage: (entityType: string, entityId: number) =>
-        axiosClient.get<ImageModel>(`/Image/${entityType}/${entityId}/primary`),
+        axiosClient.get<ImageModel>(`/image/${entityType}/${entityId}/primary`),
 
     /**
      * Upload 1 ảnh cho Product
-     * POST /api/Image/product/{productId}?isPrimary=true/false
+     * POST /api/image/product/{productId}?isPrimary=true/false
      */
     uploadProductImage: (productId: number, file: File, isPrimary: boolean = false) => {
         const formData = new FormData();
         formData.append("file", file);
         return axiosClient.post<ImageModel>(
-            `/Image/product/${productId}?isPrimary=${isPrimary}`,
+            `/image/product/${productId}?isPrimary=${isPrimary}`,
             formData,
             { headers: { "Content-Type": "multipart/form-data" } }
         );
@@ -88,14 +88,14 @@ const imageApi = {
 
     /**
      * Upload nhiều ảnh cho Product
-     * POST /api/Image/product/{productId}/multiple
+     * POST /api/image/product/{productId}/multiple
      */
     uploadMultipleProductImages: (productId: number, files: FileList | File[]) => {
         const formData = new FormData();
         const fileArray = Array.isArray(files) ? files : Array.from(files);
         fileArray.forEach(file => formData.append("files", file));
         return axiosClient.post<UploadMultipleResponse>(
-            `/Image/product/${productId}/multiple`,
+            `/image/product/${productId}/multiple`,
             formData,
             { headers: { "Content-Type": "multipart/form-data" } }
         );
@@ -103,13 +103,13 @@ const imageApi = {
 
     /**
      * Upload avatar cho User đang đăng nhập
-     * POST /api/Image/user/avatar
+     * POST /api/image/user/avatar
      */
     uploadAvatar: (file: File) => {
         const formData = new FormData();
         formData.append("file", file);
         return axiosClient.post<ImageModel>(
-            `/Image/user/avatar`,
+            `/image/user/avatar`,
             formData,
             { headers: { "Content-Type": "multipart/form-data" } }
         );
@@ -117,19 +117,19 @@ const imageApi = {
 
     /**
      * Đặt ảnh làm Primary
-     * PUT /api/Image/{imageId}/set-primary?entityType=xxx&entityId=xxx
+     * PUT /api/image/{imageId}/set-primary?entityType=xxx&entityId=xxx
      */
     setPrimaryImage: (imageId: number, entityType: string, entityId: number) =>
         axiosClient.put<{ message: string }>(
-            `/Image/${imageId}/set-primary?entityType=${entityType}&entityId=${entityId}`
+            `/image/${imageId}/set-primary?entityType=${entityType}&entityId=${entityId}`
         ),
 
     /**
      * Soft delete ảnh (đánh dấu IsDeleted = true)
-     * DELETE /api/Image/{imageId}
+     * DELETE /api/image/{imageId}
      */
     deleteImage: (imageId: number) =>
-        axiosClient.delete<{ message: string }>(`/Image/${imageId}`),
+        axiosClient.delete<{ message: string }>(`/image/${imageId}`),
 
     // ═══════════════════════════════════════════════════════════════
     // 🔒 API CHỈ DÀNH CHO ADMIN (Yêu cầu Role: Admin)
@@ -137,13 +137,13 @@ const imageApi = {
 
     /**
      * Upload ảnh cho Category (ADMIN ONLY)
-     * POST /api/Image/category/{categoryId}
+     * POST /api/image/category/{categoryId}
      */
     uploadCategoryImage: (categoryId: number, file: File) => {
         const formData = new FormData();
         formData.append("file", file);
         return axiosClient.post<ImageModel>(
-            `/Image/category/${categoryId}`,
+            `/image/category/${categoryId}`,
             formData,
             { headers: { "Content-Type": "multipart/form-data" } }
         );
@@ -151,10 +151,10 @@ const imageApi = {
 
     /**
      * Xóa vĩnh viễn ảnh khỏi DB và Storage (ADMIN ONLY)
-     * DELETE /api/Image/{imageId}/permanent
+     * DELETE /api/image/{imageId}/permanent
      */
     permanentDeleteImage: (imageId: number) =>
-        axiosClient.delete<{ message: string }>(`/Image/${imageId}/permanent`),
+        axiosClient.delete<{ message: string }>(`/image/${imageId}/permanent`),
 };
 
 export default imageApi;

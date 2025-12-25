@@ -53,6 +53,7 @@ interface UserFormData {
     userName: string;
     email: string;
     password: string;
+    phoneNumber: string;
     address: string;
 }
 
@@ -60,6 +61,7 @@ interface FormErrors {
     userName?: string;
     email?: string;
     password?: string;
+    phoneNumber?: string;
     address?: string;
 }
 
@@ -71,6 +73,7 @@ export function AddUserModal({ isOpen, onClose, onAdd }: AddUserModalProps) {
         userName: '',
         email: '',
         password: '',
+        phoneNumber: '',
         address: '',
     });
     const [errors, setErrors] = useState<FormErrors>({});
@@ -81,38 +84,47 @@ export function AddUserModal({ isOpen, onClose, onAdd }: AddUserModalProps) {
     const validateForm = (): boolean => {
         const e: FormErrors = {};
 
-        // Username validation
+        // Username validation (5-50 chars, Unicode letters, numbers, spaces, underscore)
         if (!formData.userName.trim()) {
-            e.userName = 'Username is required';
+            e.userName = 'Full name is required';
         } else if (formData.userName.length < 5) {
-            e.userName = 'Username must be at least 5 characters';
-        } else if (!/^[a-zA-Z0-9_]+$/.test(formData.userName)) {
-            e.userName = 'Username can only contain letters, numbers and underscore';
+            e.userName = 'Full name must be at least 5 characters';
+        } else if (formData.userName.length > 50) {
+            e.userName = 'Full name cannot exceed 50 characters';
         }
 
         // Email validation
         if (!formData.email.trim()) {
             e.email = 'Email is required';
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-            e.email = 'Invalid email format';
+            e.email = 'Invalid email format. Please enter a valid email address';
         }
 
-        // Password validation
+        // Phone number validation (start with 0, 10-11 digits)
+        if (!formData.phoneNumber.trim()) {
+            e.phoneNumber = 'Phone number is required';
+        } else if (!/^0\d{9,10}$/.test(formData.phoneNumber)) {
+            e.phoneNumber = 'Invalid phone number. Must start with 0 and have 10-11 digits (e.g., 0123456789)';
+        }
+
+        // Password validation (min 8, uppercase, lowercase, digit)
         if (!formData.password) {
             e.password = 'Password is required';
         } else if (formData.password.length < 8) {
-            e.password = 'Password must be at least 8 characters';
+            e.password = 'Password must be at least 8 characters long';
         } else if (!/[A-Z]/.test(formData.password)) {
-            e.password = 'Password must contain at least one uppercase letter';
+            e.password = 'Password must contain at least one uppercase letter (A-Z)';
         } else if (!/[a-z]/.test(formData.password)) {
-            e.password = 'Password must contain at least one lowercase letter';
+            e.password = 'Password must contain at least one lowercase letter (a-z)';
         } else if (!/[0-9]/.test(formData.password)) {
-            e.password = 'Password must contain at least one digit';
+            e.password = 'Password must contain at least one digit (0-9)';
         }
 
-        // Address validation
+        // Address validation (10-200 chars)
         if (!formData.address.trim()) {
             e.address = 'Address is required';
+        } else if (formData.address.length < 10) {
+            e.address = 'Address must be at least 10 characters';
         } else if (formData.address.length > 200) {
             e.address = 'Address cannot exceed 200 characters';
         }
@@ -143,6 +155,7 @@ export function AddUserModal({ isOpen, onClose, onAdd }: AddUserModalProps) {
             userName: '',
             email: '',
             password: '',
+            phoneNumber: '',
             address: '',
         });
         setErrors({});
@@ -153,24 +166,46 @@ export function AddUserModal({ isOpen, onClose, onAdd }: AddUserModalProps) {
     return (
         <Modal isOpen={isOpen} onClose={handleClose} title="Add New User" size="md">
             <form onSubmit={handleSubmit} className="space-y-4">
-                <Input
-                    label="Username"
-                    value={formData.userName}
-                    onChange={e => setFormData({ ...formData, userName: e.target.value })}
-                    placeholder="Enter username (letters, numbers, underscore)"
-                    error={errors.userName}
-                    required
-                />
+                <div>
+                    <Input
+                        label="Full Name"
+                        value={formData.userName}
+                        onChange={e => setFormData({ ...formData, userName: e.target.value })}
+                        placeholder="Enter full name (Vietnamese/English supported)"
+                        error={errors.userName}
+                        required
+                    />
+                    <p className="mt-1 text-xs text-gray-500">
+                        5-50 characters • {formData.userName.length}/50
+                    </p>
+                </div>
 
-                <Input
-                    label="Email"
-                    type="email"
-                    value={formData.email}
-                    onChange={e => setFormData({ ...formData, email: e.target.value })}
-                    placeholder="Enter email address"
-                    error={errors.email}
-                    required
-                />
+                <div>
+                    <Input
+                        label="Email"
+                        type="email"
+                        value={formData.email}
+                        onChange={e => setFormData({ ...formData, email: e.target.value })}
+                        placeholder="user@example.com"
+                        error={errors.email}
+                        required
+                    />
+                </div>
+
+                <div>
+                    <Input
+                        label="Phone Number"
+                        type="tel"
+                        value={formData.phoneNumber}
+                        onChange={e => setFormData({ ...formData, phoneNumber: e.target.value })}
+                        placeholder="0123456789"
+                        error={errors.phoneNumber}
+                        required
+                    />
+                    <p className="mt-1 text-xs text-gray-500">
+                        Start with 0, followed by 9-10 digits
+                    </p>
+                </div>
 
                 <div className="relative">
                     <Input
@@ -197,24 +232,29 @@ export function AddUserModal({ isOpen, onClose, onAdd }: AddUserModalProps) {
                         • At least 8 characters
                     </p>
                     <p className={/[A-Z]/.test(formData.password) ? 'text-green-600' : ''}>
-                        • At least one uppercase letter
+                        • At least one uppercase letter (A-Z)
                     </p>
                     <p className={/[a-z]/.test(formData.password) ? 'text-green-600' : ''}>
-                        • At least one lowercase letter
+                        • At least one lowercase letter (a-z)
                     </p>
                     <p className={/[0-9]/.test(formData.password) ? 'text-green-600' : ''}>
-                        • At least one digit
+                        • At least one digit (0-9)
                     </p>
                 </div>
 
-                <Input
-                    label="Address"
-                    value={formData.address}
-                    onChange={e => setFormData({ ...formData, address: e.target.value })}
-                    placeholder="Enter address"
-                    error={errors.address}
-                    required
-                />
+                <div>
+                    <Input
+                        label="Address"
+                        value={formData.address}
+                        onChange={e => setFormData({ ...formData, address: e.target.value })}
+                        placeholder="Enter full address"
+                        error={errors.address}
+                        required
+                    />
+                    <p className="mt-1 text-xs text-gray-500">
+                        10-200 characters • {formData.address.length}/200
+                    </p>
+                </div>
 
                 <div className="flex gap-3 pt-4 border-t">
                     <Button type="button" variant="secondary" onClick={handleClose} fullWidth>

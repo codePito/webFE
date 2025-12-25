@@ -1,10 +1,10 @@
 import axiosClient from "./axiosClient";
 
 const cartApi = {
-    getCart: () => axiosClient.get("/Cart"),
+    getCart: () => axiosClient.get("/cart"),
 
     addToCart: (productId: number | string, quantity: number) => {
-        return axiosClient.post("/Cart", null, {
+        return axiosClient.post("/cart", null, {
             params: {
                 productId: productId,
                 quantity: quantity
@@ -13,7 +13,7 @@ const cartApi = {
     },
 
     updateQuantity: (itemId: number | string, quantity: number) => {
-        return axiosClient.put("/Cart", null, {
+        return axiosClient.put("/cart", null, {
                 params: {
                 itemId: itemId,
                 quantity: quantity
@@ -22,11 +22,11 @@ const cartApi = {
     },
 
     removeFromCart: (itemId: number | string) => {
-        return axiosClient.delete(`/Cart/${itemId}`);
+        return axiosClient.delete(`/cart/${itemId}`);
     },
 
     clearCart: () => {
-        return axiosClient.delete("/Cart/clear");
+        return axiosClient.delete("/cart/clear");
     }
 };
 

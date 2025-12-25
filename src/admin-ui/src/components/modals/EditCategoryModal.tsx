@@ -77,6 +77,8 @@ export function EditCategoryModal({ isOpen, onClose, category, onUpdate }: EditC
 
     // Validate
     const validate = () => {
+        setError('');
+        
         if (!categoryName.trim()) {
             setError('Category name is required');
             return false;
@@ -85,7 +87,11 @@ export function EditCategoryModal({ isOpen, onClose, category, onUpdate }: EditC
             setError('Category name must be at least 2 characters');
             return false;
         }
-        setError('');
+        if (categoryName.length > 100) {
+            setError('Category name cannot exceed 100 characters');
+            return false;
+        }
+        
         return true;
     };
 
@@ -150,14 +156,19 @@ export function EditCategoryModal({ isOpen, onClose, category, onUpdate }: EditC
 
             {activeTab === 'info' ? (
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    <Input
-                        label="Category Name"
-                        value={categoryName}
-                        onChange={e => setCategoryName(e.target.value)}
-                        placeholder="Enter category name"
-                        error={error}
-                        required
-                    />
+                    <div>
+                        <Input
+                            label="Category Name"
+                            value={categoryName}
+                            onChange={e => setCategoryName(e.target.value)}
+                            placeholder="Enter category name"
+                            error={error}
+                            required
+                        />
+                        <p className="mt-1 text-xs text-gray-500">
+                            2-100 characters • {categoryName.length}/100
+                        </p>
+                    </div>
 
                     <div className="text-sm text-gray-500">
                         <span className="font-medium">Slug:</span>{' '}

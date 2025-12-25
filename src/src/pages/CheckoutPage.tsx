@@ -17,7 +17,8 @@ export function CheckoutPage() {
   const { isAuthenticated, user } = useAuth();
   
   const [loading, setLoading] = useState(false);
-  const [address, setAddress] = useState(user?.phone || ''); // Tạm dùng field phone làm address do mock data cũ
+  const [address, setAddress] = useState(user?.phone || '');
+  const [addressError, setAddressError] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'cod' | 'ewallet'>('cod');
 
   const subtotal = getCartTotal();
@@ -30,6 +31,18 @@ export function CheckoutPage() {
 
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate address
+    setAddressError('');
+    if (!address || address.trim().length < 10) {
+      setAddressError('Địa chỉ phải có ít nhất 10 ký tự');
+      return;
+    }
+    if (address.trim().length > 500) {
+      setAddressError('Địa chỉ không được vượt quá 500 ký tự');
+      return;
+    }
+    
     let currentUserId = null;
 
     let token = localStorage.getItem("token");
@@ -63,6 +76,7 @@ export function CheckoutPage() {
       const orderPayload: OrderRequest = {
         userId: parseInt(currentUserId),
         currency: "VND",
+        shippingAddress: address,
         items: items.map(item => ({
           productId: parseInt(item.product.id),
           quantity: item.quantity
@@ -126,12 +140,37 @@ export function CheckoutPage() {
             <div className="space-y-4">
               <Input label="Họ tên" value={user?.fullName} readOnly className="bg-gray-100" />
               <Input label="Email" value={user?.email} readOnly className="bg-gray-100" />
-              <Input 
-                label="Địa chỉ nhận hàng" 
-                value={address} 
-                onChange={(e) => setAddress(e.target.value)} 
-                placeholder="Số nhà, đường, quận/huyện..." 
-              />
+              <div>
+                <Input 
+                  label="Địa chỉ nhận hàng *" 
+                  value={address} 
+                  onChange={(e) => {
+                    setAddress(e.target.value);
+                    setAddressError('');
+                  }} 
+                  placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành phố" 
+                  required
+                />
+                {addressError && (
+                  <p className="mt-1 text-sm text-red-600">{addressError}</p>
+                )}
+                <p className="mt-1 text-xs text-gray-500">
+                  Vui lòng nhập địa chỉ đầy đủ (10-500 ký tự). Ví dụ: 123 Nguyễn Huệ, Phường Bến Nghé, Quận 1, TP.HCM
+                </p>
+                <div className="mt-1 flex items-center gap-2 text-xs">
+                  <span className={`${address.length >= 10 ? 'text-green-600' : 'text-gray-400'}`}>
+                    ✓ Tối thiểu 10 ký tự
+                  </span>
+                  <span className="text-gray-300">•</span>
+                  <span className={`${address.length > 0 && address.length <= 500 ? 'text-green-600' : 'text-gray-400'}`}>
+                    ✓ Tối đa 500 ký tự
+                  </span>
+                  <span className="text-gray-300">•</span>
+                  <span className="text-gray-500">
+                    {address.length}/500
+                  </span>
+                </div>
+              </div>
             </div>
 
             <h2 className="text-xl font-semibold mt-6 mb-4">Phương thức thanh toán</h2>
@@ -173,11 +212,16 @@ export function CheckoutPage() {
                 size="lg" 
                 className="mt-6" 
                 onClick={handleCheckout} 
-                disabled={loading || !address}
+                disabled={loading || !address || address.trim().length < 10}
                 loading={loading}
             >
                 {paymentMethod === 'ewallet' ? 'Thanh toán MoMo' : 'Đặt hàng'}
             </Button>
+            {(!address || address.trim().length < 10) && (
+              <p className="text-xs text-red-600 text-center mt-2">
+                Vui lòng nhập địa chỉ giao hàng hợp lệ
+              </p>
+            )}
           </div>
 
         </div>

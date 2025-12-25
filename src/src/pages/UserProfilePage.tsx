@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Camera, Mail, Phone, Calendar, LogOut, ShoppingBag, Settings } from 'lucide-react';
+import { User, Camera, Mail, Phone, Calendar, LogOut, ShoppingBag, Settings, Edit2, X, Check, MapPin } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import imageApi, { getImageUrl } from '../api/imageApi';
+import userApi from '../api/userApi';
 
 const DEFAULT_AVATAR = '/placeholder-image.svg';
 
@@ -16,12 +17,33 @@ export function UserProfilePage() {
     const [error, setError] = useState<string | null>(null);
     const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
+    // Edit mode state
+    const [isEditing, setIsEditing] = useState(false);
+    const [editData, setEditData] = useState({
+        userName: user?.fullName || '',
+        phoneNumber: user?.phone || '',
+        address: user?.address || ''
+    });
+    const [editErrors, setEditErrors] = useState<Record<string, string>>({});
+    const [saving, setSaving] = useState(false);
+
     // Redirect nếu chưa đăng nhập
     useEffect(() => {
         if (!isAuthenticated) {
             navigate('/login');
         }
     }, [isAuthenticated, navigate]);
+
+    // Update edit data when user changes
+    useEffect(() => {
+        if (user) {
+            setEditData({
+                userName: user.fullName || '',
+                phoneNumber: user.phone || '',
+                address: user.address || ''
+            });
+        }
+    }, [user]);
 
     // Load avatar hiện tại
     useEffect(() => {
@@ -89,6 +111,86 @@ export function UserProfilePage() {
 
     const handleImageError = () => {
         setAvatar(DEFAULT_AVATAR);
+    };
+
+    // Validate edit form
+    const validateEditForm = (): boolean => {
+        const errors: Record<string, string> = {};
+
+        // UserName validation
+        if (!editData.userName.trim()) {
+            errors.userName = 'Họ tên không được để trống';
+        } else if (editData.userName.length < 5) {
+            errors.userName = 'Họ tên phải có ít nhất 5 ký tự';
+        } else if (editData.userName.length > 50) {
+            errors.userName = 'Họ tên không được vượt quá 50 ký tự';
+        } else if (!/^[\p{L}\p{M}\d\s_]+$/u.test(editData.userName)) {
+            errors.userName = 'Họ tên chỉ được chứa chữ cái, số, khoảng trắng và dấu gạch dưới';
+        }
+
+        // PhoneNumber validation
+        if (!editData.phoneNumber.trim()) {
+            errors.phoneNumber = 'Số điện thoại không được để trống';
+        } else if (!/^0\d{8,9}$/.test(editData.phoneNumber)) {
+            errors.phoneNumber = 'Số điện thoại phải bắt đầu bằng 0 và có 9-10 chữ số';
+        }
+
+        // Address validation
+        if (!editData.address.trim()) {
+            errors.address = 'Địa chỉ không được để trống';
+        } else if (editData.address.length < 10) {
+            errors.address = 'Địa chỉ phải có ít nhất 10 ký tự';
+        } else if (editData.address.length > 200) {
+            errors.address = 'Địa chỉ không được vượt quá 200 ký tự';
+        }
+
+        setEditErrors(errors);
+        return Object.keys(errors).length === 0;
+    };
+
+    // Handle edit mode
+    const handleEditClick = () => {
+        setIsEditing(true);
+        setError(null);
+        setSuccessMsg(null);
+    };
+
+    const handleCancelEdit = () => {
+        setIsEditing(false);
+        setEditData({
+            userName: user?.fullName || '',
+            phoneNumber: user?.phone || '',
+            address: user?.address || ''
+        });
+        setEditErrors({});
+    };
+
+    const handleSaveProfile = async () => {
+        if (!validateEditForm()) {
+            return;
+        }
+
+        try {
+            setSaving(true);
+            setError(null);
+
+            await userApi.updateProfile(Number(user?.id), editData);
+
+            setSuccessMsg('Cập nhật thông tin thành công! Vui lòng đăng nhập lại để thấy thay đổi.');
+            setIsEditing(false);
+            
+            // Đăng xuất sau 2 giây để user đăng nhập lại và lấy token mới
+            setTimeout(() => {
+                logout();
+                navigate('/login');
+            }, 2000);
+        } catch (err: any) {
+            console.error('Update profile failed:', err);
+            const errorMsg = err?.response?.data?.message || 'Cập nhật thất bại. Vui lòng thử lại.';
+            setError(errorMsg);
+        } finally {
+            setSaving(false);
+        }
     };
 
     if (!user) {
@@ -186,31 +288,191 @@ export function UserProfilePage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                     {/* Contact Info */}
                     <div className="bg-white rounded-lg shadow-sm p-6">
-                        <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                            <User className="w-5 h-5 mr-2 text-blue-500" />
-                            Thông tin liên hệ
-                        </h2>
-
-                        <div className="space-y-4">
-                            <div className="flex items-center text-gray-600">
-                                <Mail className="w-5 h-5 mr-3 text-gray-400" />
-                                <span>{user.email}</span>
-                            </div>
-
-                            {user.phone && (
-                                <div className="flex items-center text-gray-600">
-                                    <Phone className="w-5 h-5 mr-3 text-gray-400" />
-                                    <span>{user.phone}</span>
-                                </div>
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+                                <User className="w-5 h-5 mr-2 text-blue-500" />
+                                Thông tin liên hệ
+                            </h2>
+                            {!isEditing && (
+                                <button
+                                    onClick={handleEditClick}
+                                    className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+                                    title="Chỉnh sửa"
+                                >
+                                    <Edit2 className="w-4 h-4" />
+                                </button>
                             )}
-
-                            <div className="flex items-center text-gray-600">
-                                <Calendar className="w-5 h-5 mr-3 text-gray-400" />
-                                <span>
-                                    Tham gia: {new Date(user.createdAt).toLocaleDateString('vi-VN')}
-                                </span>
-                            </div>
                         </div>
+
+                        {!isEditing ? (
+                            // View Mode
+                            <div className="space-y-4">
+                                <div className="flex items-start text-gray-600">
+                                    <User className="w-5 h-5 mr-3 text-gray-400 mt-0.5" />
+                                    <div>
+                                        <div className="text-xs text-gray-500 mb-1">Họ tên</div>
+                                        <div>{user.fullName}</div>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-start text-gray-600">
+                                    <Mail className="w-5 h-5 mr-3 text-gray-400 mt-0.5" />
+                                    <div>
+                                        <div className="text-xs text-gray-500 mb-1">Email</div>
+                                        <div>{user.email}</div>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-start text-gray-600">
+                                    <Phone className="w-5 h-5 mr-3 text-gray-400 mt-0.5" />
+                                    <div>
+                                        <div className="text-xs text-gray-500 mb-1">Số điện thoại</div>
+                                        <div>{user.phone || 'Chưa cập nhật'}</div>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-start text-gray-600">
+                                    <MapPin className="w-5 h-5 mr-3 text-gray-400 mt-0.5" />
+                                    <div>
+                                        <div className="text-xs text-gray-500 mb-1">Địa chỉ</div>
+                                        <div>{user.address || 'Chưa cập nhật'}</div>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-start text-gray-600">
+                                    <Calendar className="w-5 h-5 mr-3 text-gray-400 mt-0.5" />
+                                    <div>
+                                        <div className="text-xs text-gray-500 mb-1">Tham gia</div>
+                                        <div>{new Date(user.createdAt).toLocaleDateString('vi-VN')}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            // Edit Mode
+                            <div className="space-y-4">
+                                {/* UserName */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Họ tên <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={editData.userName}
+                                        onChange={(e) => setEditData({ ...editData, userName: e.target.value })}
+                                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                                            editErrors.userName ? 'border-red-500' : 'border-gray-300'
+                                        }`}
+                                        placeholder="Nhập họ tên"
+                                    />
+                                    <div className="flex justify-between mt-1">
+                                        <span className="text-xs text-gray-500">
+                                            {editErrors.userName ? (
+                                                <span className="text-red-500">{editErrors.userName}</span>
+                                            ) : (
+                                                'Từ 5-50 ký tự, chữ cái, số, khoảng trắng'
+                                            )}
+                                        </span>
+                                        <span className={`text-xs ${editData.userName.length > 50 ? 'text-red-500' : 'text-gray-500'}`}>
+                                            {editData.userName.length}/50
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Email (readonly) */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Email
+                                    </label>
+                                    <input
+                                        type="email"
+                                        value={user.email}
+                                        disabled
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
+                                    />
+                                    <span className="text-xs text-gray-500 mt-1">Email không thể thay đổi</span>
+                                </div>
+
+                                {/* PhoneNumber */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Số điện thoại <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="tel"
+                                        value={editData.phoneNumber}
+                                        onChange={(e) => setEditData({ ...editData, phoneNumber: e.target.value })}
+                                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                                            editErrors.phoneNumber ? 'border-red-500' : 'border-gray-300'
+                                        }`}
+                                        placeholder="0123456789"
+                                    />
+                                    <span className="text-xs text-gray-500 mt-1">
+                                        {editErrors.phoneNumber ? (
+                                            <span className="text-red-500">{editErrors.phoneNumber}</span>
+                                        ) : (
+                                            'Bắt đầu bằng 0, có 9-10 chữ số'
+                                        )}
+                                    </span>
+                                </div>
+
+                                {/* Address */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Địa chỉ <span className="text-red-500">*</span>
+                                    </label>
+                                    <textarea
+                                        value={editData.address}
+                                        onChange={(e) => setEditData({ ...editData, address: e.target.value })}
+                                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                                            editErrors.address ? 'border-red-500' : 'border-gray-300'
+                                        }`}
+                                        placeholder="Nhập địa chỉ"
+                                        rows={3}
+                                    />
+                                    <div className="flex justify-between mt-1">
+                                        <span className="text-xs text-gray-500">
+                                            {editErrors.address ? (
+                                                <span className="text-red-500">{editErrors.address}</span>
+                                            ) : (
+                                                'Từ 10-200 ký tự'
+                                            )}
+                                        </span>
+                                        <span className={`text-xs ${editData.address.length > 200 ? 'text-red-500' : 'text-gray-500'}`}>
+                                            {editData.address.length}/200
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Action Buttons */}
+                                <div className="flex gap-3 pt-2">
+                                    <button
+                                        onClick={handleCancelEdit}
+                                        disabled={saving}
+                                        className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                                    >
+                                        <X className="w-4 h-4 mr-2" />
+                                        Hủy
+                                    </button>
+                                    <button
+                                        onClick={handleSaveProfile}
+                                        disabled={saving}
+                                        className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                                    >
+                                        {saving ? (
+                                            <>
+                                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                                                Đang lưu...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Check className="w-4 h-4 mr-2" />
+                                                Lưu thay đổi
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     {/* Quick Actions */}

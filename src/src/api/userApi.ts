@@ -9,7 +9,15 @@ export interface UserResponse {
     userName: string;
     address: string;
     role: string;
+    phoneNumber: string;
     avatarUrl?: string | null;
+    createdAt: string;
+}
+
+export interface UpdateProfileRequest {
+    userName: string;
+    phoneNumber: string;
+    address: string;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -19,21 +27,26 @@ export interface UserResponse {
 const userApi = {
     /**
      * Lấy thông tin user theo email
-     * GET /api/User/{email}
-     * Auth: None (public)
-     * Dùng cho: USER - xem profile
+     * GET /api/user/{email} (số ít)
      */
     getByEmail: (email: string) => {
-        return axiosClient.get<UserResponse>(`/User/${encodeURIComponent(email)}`);
+        return axiosClient.get<UserResponse>(`/user/${encodeURIComponent(email)}`);
     },
 
     /**
      * Lấy tất cả users (ADMIN ONLY)
-     * GET /api/User
-     * Auth: Required
+     * GET /api/users (số nhiều)
      */
     getAllUsers: () => {
-        return axiosClient.get<UserResponse[]>("/User");
+        return axiosClient.get<UserResponse[]>("/users");
+    },
+
+    /**
+     * Cập nhật profile user
+     * PUT /api/user/{id}/profile
+     */
+    updateProfile: (userId: number, data: UpdateProfileRequest) => {
+        return axiosClient.put(`/user/${userId}/profile`, data);
     }
 };
 
