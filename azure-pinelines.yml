@@ -24,4 +24,4 @@ steps:
   inputs:
     app_location: "/"
     output_location: "dist"
-    azure_static_web_apps_api_token: $(AZURE_STATIC_WEB_APPS_API_TOKEN)
+    azure_static_web_apps_api_token: "3badbf154b20ee4f1d5adef0857465546ec7606d1e637d1ecbb502d110fd75c601-e5884373-f0d1-4ab6-bdb9-77939e4054140001509059cff300"
