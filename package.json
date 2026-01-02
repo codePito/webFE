@@ -36,5 +36,9 @@
     "tailwindcss": "3.4.17",
     "typescript": "^5.5.4",
     "vite": "^5.2.0"
-  }
+  },
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": ["/images/*.{png,jpg,gif}", "/css/*"]
+}
 }
