@@ -6,6 +6,7 @@ pool:
 
 variables:
   NODE_VERSION: '18.x'
+  VITE_API_URL: 'https://ecommerce-webapp-hzfvdrbfabekc3bf.southeastasia-01.azurewebsites.net/api/'
 
 steps:
 - task: NodeTool@0
@@ -18,6 +19,8 @@ steps:
 
 - script: npm run build
   displayName: 'Build React App'
+  env:
+    VITE_API_URL: $(VITE_API_URL)
 
 - task: AzureStaticWebApp@0
   displayName: 'Deploy to Azure Static Web App'
