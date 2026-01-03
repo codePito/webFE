@@ -86,7 +86,7 @@ export function RegisterPage() {
                 ))}
               </div>
             )}
-            <p className="mt-1 text-xs text-gray-500">5-50 characters, Vietnamese/English letters, numbers, spaces allowed</p>
+            <p className="mt-1 text-xs text-gray-500">5-50 characters, Vietnamese/English letters, spaces allowed</p>
           </div>
 
           <div>

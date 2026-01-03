@@ -5,7 +5,7 @@ import { useProducts } from '../context/ProductContext';
 import { ProductGrid } from '../components/product/ProductGrid';
 import { CategoryFilter } from '../components/product/CategoryFilter';
 
-const PRODUCTS_PER_PAGE = 12;
+const PRODUCTS_PER_PAGE = 10;
 
 export function HomePage() {
   const { products } = useProducts();

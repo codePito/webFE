@@ -1,13 +1,10 @@
+import { LoginRequest, LoginResponse } from "../types";
 import axiosClient from "./axiosClient";
 
 const authApi = {
-    login: (params: {email: string; password: string}) =>
-        axiosClient.post("/user/login", null, {
-            params: {
-                email: params.email,
-                password: params.password
-            }
-        }),
+    login: (request: LoginRequest) => {
+        return axiosClient.post<LoginResponse>("/user/login", request);
+        },
 
     register: (body: any) =>
         axiosClient.post("/user/register", body),

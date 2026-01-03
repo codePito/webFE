@@ -140,11 +140,11 @@ const ProductGallery: React.FC<Props> = ({ productId }) => {
                                     onError={handleImageError}
                                 />
                                 {/* Badge Primary */}
-                                {img.isPrimary && (
+                                {/* {img.isPrimary && (
                                     <span className="absolute bottom-0 left-0 right-0 bg-blue-500 text-white text-xs text-center py-0.5">
                                         Primary
                                     </span>
-                                )}
+                                )} */}
                             </button>
                         );
                     })}

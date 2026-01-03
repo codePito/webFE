@@ -1,5 +1,6 @@
 import React, { useEffect, useState, createContext, useContext } from 'react';
 import authApi from '../api/authApi';
+import { LoginRequest } from '../types';
 
 const ROLE_CLAIM_KEY = 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role';
 const EMAIL_CLAIM_KEY = 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress';
@@ -21,11 +22,6 @@ export interface User {
   createdAt: Date;
 }
 
-interface LoginCredentials {
-  email: string;
-  password: string;
-}
-
 interface RegisterData {
   email: string;
   password: string;
@@ -38,9 +34,10 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isAdmin: boolean;
-  login: (credentials: LoginCredentials) => Promise<boolean>;
+  login: (credentials: LoginRequest) => Promise<boolean>;
   register: (data: RegisterData) => Promise<boolean>;
   logout: () => void;
+  updateUser: (userData: Partial<User>) => void;
   isAuthModalOpen: boolean;
   openAuthModal: () => void;
   closeAuthModal: () => void;
@@ -93,12 +90,12 @@ export function AuthProvider({
     }
   }, [user]);
 
-  const login = async (credentials: LoginCredentials): Promise<boolean> => {
+  const login = async (credentials: LoginRequest): Promise<boolean> => {
     try {
         const response = await authApi.login(credentials);
         
         const data = response.data;
-        const token = data.token || data; // Lấy token từ object hoặc string
+        const token = data.token;
         
         if (!token) return false;
 
@@ -169,6 +166,13 @@ export function AuthProvider({
     localStorage.removeItem('access_token');
   };
 
+  const updateUser = (userData: Partial<User>) => {
+    if (user) {
+      const updatedUser = { ...user, ...userData };
+      setUser(updatedUser);
+    }
+  };
+
   const openAuthModal = () => setIsAuthModalOpen(true);
   const closeAuthModal = () => setIsAuthModalOpen(false);
 
@@ -180,6 +184,7 @@ export function AuthProvider({
       login,
       register,
       logout,
+      updateUser,
       isAuthModalOpen,
       openAuthModal,
       closeAuthModal

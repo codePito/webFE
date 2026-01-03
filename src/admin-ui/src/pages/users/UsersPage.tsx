@@ -30,9 +30,7 @@ export function UsersPage() {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const paginatedUsers = filteredUsers.slice(startIndex, startIndex + itemsPerPage);
 
-    // ═══════════════════════════════════════════════════════════════
-    // FETCH USERS
-    // ═══════════════════════════════════════════════════════════════
+
     const fetchUsers = useCallback(async () => {
         setIsLoading(true);
         try {

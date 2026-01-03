@@ -53,7 +53,7 @@ export function ProductCard({ product }: ProductCardProps) {
         
         {/* Badges */}
         <div className="absolute top-2 left-2 flex flex-col gap-1">
-          {product.discount && (
+          {!!product.discount && (
             <Badge variant="danger">-{product.discount}%</Badge>
           )}
           {product.isOutOfStock && (
@@ -65,8 +65,8 @@ export function ProductCard({ product }: ProductCardProps) {
         </div>
       </div>
 
-      <div className="p-4 flex flex-col flex-1">
-        <h3 className="font-medium text-gray-900 mb-2 line-clamp-2 group-hover:text-primary-600 transition-colors">
+      <div className="p-3 sm:p-4 flex flex-col flex-1">
+        <h3 className="font-medium text-sm sm:text-base text-gray-900 mb-2 line-clamp-2 group-hover:text-primary-600 transition-colors">
           {product.name}
         </h3>
 
@@ -78,24 +78,24 @@ export function ProductCard({ product }: ProductCardProps) {
           />
         </div>
 
-        <div className="flex items-baseline gap-2 mb-2">
-          <span className="text-xl font-bold text-primary-600">
+        <div className="flex items-baseline gap-1 sm:gap-2 mb-2">
+          <span className="text-lg sm:text-xl font-bold text-primary-600">
             {formatCurrency(product.price)}
           </span>
           {product.originalPrice && (
-            <span className="text-sm text-gray-400 line-through">
+            <span className="text-xs sm:text-sm text-gray-400 line-through">
               {formatCurrency(product.originalPrice)}
             </span>
           )}
         </div>
 
-        <div className="flex items-center justify-between mb-4">
-          <p className="text-xs text-gray-500">
+        <div className="flex items-center justify-between mb-3 sm:mb-4 text-xs">
+          <p className="text-gray-500">
             {formatNumber(product.soldCount)} sold
           </p>
           {!product.isOutOfStock && product.stock <= 10 && (
-            <p className="text-xs text-primary-600 font-medium">
-              Only {product.stock} left!
+            <p className="text-primary-600 font-medium">
+              {product.stock} left
             </p>
           )}
         </div>
@@ -106,9 +106,9 @@ export function ProductCard({ product }: ProductCardProps) {
           fullWidth
           onClick={handleAddToCart}
           disabled={product.isOutOfStock || !product.isAvailable}
-          className="mt-auto"
+          className="mt-auto text-xs sm:text-sm"
         >
-          <ShoppingCart className="w-4 h-4 inline mr-2" />
+          <ShoppingCart className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
           {product.isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
         </Button>
       </div>

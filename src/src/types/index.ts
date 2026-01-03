@@ -42,6 +42,15 @@ export interface User {
   createdAt: Date;
 }
 
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  token: string;
+}
+
 export interface LoginCredentials {
   email: string;
   password: string;

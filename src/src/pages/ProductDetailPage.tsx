@@ -70,40 +70,37 @@ export function ProductDetailPage() {
         </button>
 
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-6 lg:p-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 p-4 sm:p-6 lg:p-8">
             {/* Image Gallery */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-    <ProductGallery productId={Number(product.id)} />
-    <div className="product-info">
-        {/* Thông tin tên, giá, nút mua hàng... */}
-    </div>
-</div>
+            <div>
+              <ProductGallery productId={Number(product.id)} />
+            </div>
 
             {/* Product Info */}
             <div>
               <div className="mb-4">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
                   {product.name}
                 </h1>
-                <div className="flex items-center gap-4 mb-3">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-3">
                   <Rating
                     rating={product.rating}
                     reviewCount={product.reviewCount}
                     size="lg"
                   />
-                  <span className="text-gray-500">
+                  <span className="text-sm sm:text-base text-gray-500">
                     {formatNumber(product.soldCount)} sold
                   </span>
                 </div>
               </div>
 
-              <div className="flex items-baseline gap-3 mb-6">
-                <span className="text-4xl font-bold text-primary-600">
+              <div className="flex flex-wrap items-baseline gap-2 sm:gap-3 mb-6">
+                <span className="text-3xl sm:text-4xl font-bold text-primary-600">
                   {formatCurrency(product.price)}
                 </span>
                 {product.originalPrice && (
                   <>
-                    <span className="text-xl text-gray-400 line-through">
+                    <span className="text-lg sm:text-xl text-gray-400 line-through">
                       {formatCurrency(product.originalPrice)}
                     </span>
                     <Badge variant="danger" size="md">
@@ -160,24 +157,26 @@ export function ProductDetailPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Quantity
                 </label>
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    disabled={product.isOutOfStock}
-                    className="w-10 h-10 flex items-center justify-center border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <Minus className="w-4 h-4" />
-                  </button>
-                  <span className="w-16 text-center text-lg font-medium">
-                    {quantity}
-                  </span>
-                  <button
-                    onClick={() => setQuantity(Math.min(maxQuantity, quantity + 1))}
-                    disabled={quantity >= maxQuantity || product.isOutOfStock}
-                    className="w-10 h-10 flex items-center justify-center border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      disabled={product.isOutOfStock}
+                      className="w-10 h-10 flex items-center justify-center border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Minus className="w-4 h-4" />
+                    </button>
+                    <span className="w-16 text-center text-lg font-medium">
+                      {quantity}
+                    </span>
+                    <button
+                      onClick={() => setQuantity(Math.min(maxQuantity, quantity + 1))}
+                      disabled={quantity >= maxQuantity || product.isOutOfStock}
+                      className="w-10 h-10 flex items-center justify-center border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
                   <span className="text-sm text-gray-500">
                     {product.isOutOfStock 
                       ? 'Out of stock' 
@@ -186,23 +185,25 @@ export function ProductDetailPage() {
                 </div>
               </div>
 
-              <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <Button
                   variant="primary"
                   size="lg"
                   fullWidth
                   onClick={handleAddToCart}
                   disabled={product.isOutOfStock || !product.isAvailable}
+                  className="sm:flex-1"
                 >
-                  <ShoppingCart className="w-5 h-5 mr-2" />
                   {product.isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
                 </Button>
-                <button className="w-12 h-12 flex items-center justify-center border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                  <Heart className="w-5 h-5" />
-                </button>
-                <button className="w-12 h-12 flex items-center justify-center border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                  <Share2 className="w-5 h-5" />
-                </button>
+                <div className="flex gap-3 sm:w-auto">
+                  <button className="flex-1 sm:flex-none w-12 h-12 flex items-center justify-center border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                    <Heart className="w-5 h-5" />
+                  </button>
+                  <button className="flex-1 sm:flex-none w-12 h-12 flex items-center justify-center border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                    <Share2 className="w-5 h-5" />
+                  </button>
+                </div>
               </div>
             </div>
           </div>

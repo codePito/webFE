@@ -87,7 +87,7 @@ const orderApi = {
     getByUserId: (userId: number | string) => {
         const baseUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || '';
         const token = localStorage.getItem('access_token');
-        return axios.get<OrderResponse[]>(`${baseUrl}/user/${userId}`, {
+        return axios.get<OrderResponse[]>(`${baseUrl}user/${userId}`, {
             headers: token ? { Authorization: `Bearer ${token}` } : {}
         });
     },

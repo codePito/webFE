@@ -9,7 +9,7 @@ const DEFAULT_AVATAR = '/placeholder-image.svg';
 
 export function UserProfilePage() {
     const navigate = useNavigate();
-    const { user, logout, isAuthenticated } = useAuth();
+    const { user, logout, isAuthenticated, updateUser } = useAuth();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [avatar, setAvatar] = useState<string>(DEFAULT_AVATAR);
@@ -176,14 +176,20 @@ export function UserProfilePage() {
 
             await userApi.updateProfile(Number(user?.id), editData);
 
-            setSuccessMsg('Cập nhật thông tin thành công! Vui lòng đăng nhập lại để thấy thay đổi.');
+            // Cập nhật user trong context thay vì logout
+            updateUser({
+                fullName: editData.userName,
+                phone: editData.phoneNumber,
+                address: editData.address
+            });
+
+            setSuccessMsg('Cập nhật thông tin thành công!');
             setIsEditing(false);
             
-            // Đăng xuất sau 2 giây để user đăng nhập lại và lấy token mới
+            // Tự động ẩn thông báo sau 3 giây
             setTimeout(() => {
-                logout();
-                navigate('/login');
-            }, 2000);
+                setSuccessMsg(null);
+            }, 3000);
         } catch (err: any) {
             console.error('Update profile failed:', err);
             const errorMsg = err?.response?.data?.message || 'Cập nhật thất bại. Vui lòng thử lại.';

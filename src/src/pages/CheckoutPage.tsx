@@ -129,14 +129,14 @@ export function CheckoutPage() {
   if (items.length === 0) return <div className="p-8 text-center">Giỏ hàng trống</div>;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 py-4 sm:py-8">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Thanh Toán</h1>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 sm:mb-8">Thanh Toán</h1>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8">
           
           {/* Form Thông tin */}
-          <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow-sm">
-            <h2 className="text-xl font-semibold mb-4">Thông tin giao hàng</h2>
+          <div className="lg:col-span-2 bg-white p-4 sm:p-6 rounded-lg shadow-sm">
+            <h2 className="text-lg sm:text-xl font-semibold mb-4">Thông tin giao hàng</h2>
             <div className="space-y-4">
               <Input label="Họ tên" value={user?.fullName} readOnly className="bg-gray-100" />
               <Input label="Email" value={user?.email} readOnly className="bg-gray-100" />
@@ -173,24 +173,24 @@ export function CheckoutPage() {
               </div>
             </div>
 
-            <h2 className="text-xl font-semibold mt-6 mb-4">Phương thức thanh toán</h2>
+            <h2 className="text-lg sm:text-xl font-semibold mt-6 mb-4">Phương thức thanh toán</h2>
             <div className="space-y-3">
                 {/* Custom Radio Button UI */}
-                <div onClick={() => setPaymentMethod('cod')} className={`p-4 border rounded-lg cursor-pointer flex items-center gap-3 ${paymentMethod === 'cod' ? 'border-primary-500 bg-primary-50' : ''}`}>
-                    <div className={`w-4 h-4 rounded-full border ${paymentMethod === 'cod' ? 'bg-primary-500 border-primary-500' : 'border-gray-400'}`}></div>
-                    <span>Thanh toán khi nhận hàng (COD)</span>
+                <div onClick={() => setPaymentMethod('cod')} className={`p-3 sm:p-4 border rounded-lg cursor-pointer flex items-center gap-3 ${paymentMethod === 'cod' ? 'border-primary-500 bg-primary-50' : ''}`}>
+                    <div className={`w-4 h-4 rounded-full border flex-shrink-0 ${paymentMethod === 'cod' ? 'bg-primary-500 border-primary-500' : 'border-gray-400'}`}></div>
+                    <span className="text-sm sm:text-base">Thanh toán khi nhận hàng (COD)</span>
                 </div>
-                <div onClick={() => setPaymentMethod('ewallet')} className={`p-4 border rounded-lg cursor-pointer flex items-center gap-3 ${paymentMethod === 'ewallet' ? 'border-primary-500 bg-primary-50' : ''}`}>
-                    <div className={`w-4 h-4 rounded-full border ${paymentMethod === 'ewallet' ? 'bg-primary-500 border-primary-500' : 'border-gray-400'}`}></div>
-                    <img src="https://upload.wikimedia.org/wikipedia/vi/f/fe/MoMo_Logo.png" alt="Momo" className="h-6 w-6" />
-                    <span>Ví MoMo</span>
+                <div onClick={() => setPaymentMethod('ewallet')} className={`p-3 sm:p-4 border rounded-lg cursor-pointer flex items-center gap-3 ${paymentMethod === 'ewallet' ? 'border-primary-500 bg-primary-50' : ''}`}>
+                    <div className={`w-4 h-4 rounded-full border flex-shrink-0 ${paymentMethod === 'ewallet' ? 'bg-primary-500 border-primary-500' : 'border-gray-400'}`}></div>
+                    <img src="https://upload.wikimedia.org/wikipedia/vi/f/fe/MoMo_Logo.png" alt="Momo" className="h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0" />
+                    <span className="text-sm sm:text-base">Ví MoMo</span>
                 </div>
             </div>
           </div>
 
           {/* Order Summary */}
-          <div className="bg-white p-6 rounded-lg shadow-sm h-fit">
-            <h2 className="text-xl font-bold mb-4">Đơn hàng</h2>
+          <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm h-fit lg:sticky lg:top-20">
+            <h2 className="text-lg sm:text-xl font-bold mb-4">Đơn hàng</h2>
             <div className="space-y-3 mb-4 max-h-60 overflow-y-auto">
                 {items.map(item => (
                     <div key={item.id} className="flex justify-between text-sm">
